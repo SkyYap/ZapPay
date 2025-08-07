@@ -4,6 +4,9 @@
 
 We extend Coinbase's x402 protocol to become the first 0% rate web3 payment gateway and deploy our facilitator on Scroll. We also provide up to 4.5% interest for stablecoins held in our accounts. We prepare ready WordPress plugins, Shopify plugins and allow merchants to accept crypto payments in 7 lines of code.  
 
+Screenshot of the frontend:
+![Home Page](./assets/preview.png)
+
 ## 🚀 Project Overview
 
 This project is a fork of the x402 protocol example, enhanced with landing page, merchant frontend, and customized server side (we didn't include the facilitator yet since the facilitator is chain-agnostic, currently using the Base Sepolia for testing purpose):
