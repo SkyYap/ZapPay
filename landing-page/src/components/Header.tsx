@@ -33,7 +33,7 @@ const Header: React.FC = () => {
           <div className="flex items-center">
             <div className="w-10 h-10 bg-[#F5F5DC] rounded-xl flex items-center justify-center mr-3 shadow-sm">
               <img 
-                src="/src/assets/zappay-logo-white.png" 
+                src="/zappay-logo-white.png" 
                 alt="ZapPay Logo" 
                 className="w-8 h-8 object-contain"
               />
@@ -61,7 +61,7 @@ const Header: React.FC = () => {
               Sign In
             </button> */}
             <button 
-              onClick={() => window.open('http://localhost:5174/', '_blank')}
+              onClick={() => window.open('https://zappay-merchant-frontend.onrender.com', '_blank')}
               className="group bg-gray-900 text-white px-6 py-3 rounded-xl font-semibold hover:bg-gray-800 transition-all duration-300 flex items-center shadow-lg hover:shadow-xl transform hover:-translate-y-0.5"
             >
               Open App

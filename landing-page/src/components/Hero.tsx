@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { ArrowRight, Play, Shield, Zap } from 'lucide-react';
-import hosteduiImage from '../assets/hostedui.png';
+import hosteduiImage from '/hostedui.png';
 
 const Hero: React.FC = () => {
   const [isVisible, setIsVisible] = useState(false);

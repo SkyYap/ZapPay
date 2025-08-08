@@ -73,7 +73,7 @@ export function Sidebar({ className }: SidebarProps) {
       <div className="flex h-14 items-center border-b px-4">
         <div className="flex items-center space-x-2">
           <img 
-            src="/src/assets/zappay-logo-white.png" 
+            src="/zappay-logo-white.png" 
             alt="ZapPay Logo" 
             className="h-6 w-6 object-contain"
           />
