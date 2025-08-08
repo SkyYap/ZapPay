@@ -101,4 +101,5 @@ export type NavigationItem = {
   href: string;
   icon: React.ComponentType<{ className?: string }>;
   comingSoon?: boolean;
+  demo?: boolean;
 };

@@ -66,6 +66,36 @@ export const api = {
     console.log("✅ One-time access granted:", response.data);
     return response.data;
   },
+
+  // Product management
+  createProduct: async (productData: { name: string; pricing: number }) => {
+    console.log("📦 Creating new product...", productData);
+    const response = await apiClient.post("/api/product", productData);
+    console.log("✅ Product created:", response.data);
+    return response.data;
+  },
+
+  getProducts: async () => {
+    console.log("📦 Fetching products...");
+    const response = await apiClient.get("/api/products");
+    console.log("✅ Products fetched:", response.data);
+    return response.data;
+  },
+
+  // Payment Links management
+  getPaymentLinks: async () => {
+    console.log("🔗 Fetching payment links...");
+    const response = await apiClient.get("/api/payment-links");
+    console.log("✅ Payment links fetched:", response.data);
+    return response.data;
+  },
+
+  createPaymentLink: async (paymentLinkData: { link_name: string; product_name: string; expiry_date: string }) => {
+    console.log("🔗 Creating payment link...", paymentLinkData);
+    const response = await apiClient.post("/api/payment-link", paymentLinkData);
+    console.log("✅ Payment link created:", response.data);
+    return response.data;
+  },
 };
 
 // Types for API responses
@@ -89,4 +119,38 @@ export interface SessionValidation {
   valid: boolean;
   error?: string;
   session?: Session;
+}
+
+export interface Product {
+  id: string;
+  name: string;
+  pricing: number;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface CreateProductResponse {
+  success: boolean;
+  message?: string;
+  product?: Product;
+  error?: string;
+}
+
+export interface PaymentLink {
+  id: string;
+  link_name: string;
+  payment_link: string;
+  product_id: string;
+  product_name: string;
+  pricing: number;
+  expiry_date: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface CreatePaymentLinkResponse {
+  success: boolean;
+  message?: string;
+  payment_link?: PaymentLink;
+  error?: string;
 } 

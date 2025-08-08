@@ -29,7 +29,7 @@ function App() {
           <Route path="terminal" element={<Terminal />} />
           <Route path="billing" element={<Billing />} />
         </Route>
-        <Route path="/zapPayUI" element={<ZapPayUI />} />
+        <Route path="/payment/:paymentLink" element={<ZapPayUI />} />
       </Routes>
     </Router>
   );

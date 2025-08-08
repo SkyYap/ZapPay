@@ -1,4 +1,5 @@
 import { useState, useCallback, useEffect } from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { 
@@ -6,7 +7,8 @@ import {
   CreditCard, 
   Shield, 
   CheckCircle,
-  ChevronDown
+  ChevronDown,
+  AlertCircle
 } from 'lucide-react';
 import { createWalletClient, custom, type WalletClient } from 'viem';
 import { baseSepolia } from 'viem/chains';
@@ -48,6 +50,19 @@ function updateApiClient(walletClient: WalletClient | null) {
   }
 }
 
+// Payment link interface
+interface PaymentLink {
+  id: string;
+  link_name: string;
+  payment_link: string;
+  product_id: string;
+  product_name: string;
+  pricing: number;
+  expiry_date: string;
+  created_at: string;
+  updated_at: string;
+}
+
 // API endpoints
 const api = {
   // Free endpoints
@@ -58,6 +73,12 @@ const api = {
 
   getPaymentOptions: async () => {
     const response = await apiClient.get("/api/payment-options");
+    return response.data;
+  },
+
+  // Get payment link details
+  getPaymentLink: async (paymentLink: string) => {
+    const response = await apiClient.get(`/api/payment-link/${paymentLink}`);
     return response.data;
   },
 
@@ -78,6 +99,9 @@ const api = {
 };
 
 export function ZapPayUI() {
+  const { paymentLink } = useParams<{ paymentLink: string }>();
+  const navigate = useNavigate();
+  
   const [isWalletConnected, setIsWalletConnected] = useState(false);
   const [address, setAddress] = useState<Hex | null>(null);
   const [walletClient, setWalletClient] = useState<WalletClient | null>(null);
@@ -87,25 +111,51 @@ export function ZapPayUI() {
   const [selectedCrypto, setSelectedCrypto] = useState('USDC');
   const [showCryptoDropdown, setShowCryptoDropdown] = useState(false);
   const [paymentResult, setPaymentResult] = useState<any>(null);
-
-  const paymentData = {
-    name: 'Premium Membership',
-    description: 'Access to premium features and exclusive content',
-    amount: '1.00',
-    currency: 'USD'
-  };
+  
+  // Payment link data
+  const [paymentLinkData, setPaymentLinkData] = useState<PaymentLink | null>(null);
+  const [isLoadingPaymentLink, setIsLoadingPaymentLink] = useState(true);
+  const [paymentLinkError, setPaymentLinkError] = useState<string | null>(null);
 
   const cryptoOptions = ['ETH', 'BTC', 'USDT', 'USDC'];
   
-  const getCryptoAmount = (cryptoType: string) => {
-    // Approximate rates for $1.00 USD (as of current market)
+  const getCryptoAmount = (cryptoType: string, usdAmount: number) => {
+    // Approximate rates for USD amount (as of current market)
     const rates = {
-      'ETH': '0.0004', // ~$1.00 worth of ETH
-      'BTC': '0.000015', // ~$1.00 worth of BTC
-      'USDT': '1.00', // 1:1 with USD
-      'USDC': '1.00' // 1:1 with USD
+      'ETH': usdAmount * 0.0004, // ~$1.00 worth of ETH
+      'BTC': usdAmount * 0.000015, // ~$1.00 worth of BTC
+      'USDT': usdAmount, // 1:1 with USD
+      'USDC': usdAmount // 1:1 with USD
     };
-    return rates[cryptoType as keyof typeof rates] || '0.0004';
+    return rates[cryptoType as keyof typeof rates] || (usdAmount * 0.0004);
+  };
+
+  // Fetch payment link data on component mount
+  useEffect(() => {
+    if (paymentLink) {
+      fetchPaymentLinkData();
+    }
+  }, [paymentLink]);
+
+  const fetchPaymentLinkData = async () => {
+    if (!paymentLink) return;
+    
+    setIsLoadingPaymentLink(true);
+    setPaymentLinkError(null);
+    
+    try {
+      const response = await api.getPaymentLink(paymentLink);
+      
+      if (response.success) {
+        setPaymentLinkData(response.payment_link);
+      } else {
+        setPaymentLinkError(response.error || 'Failed to load payment link');
+      }
+    } catch (error: any) {
+      setPaymentLinkError(error.message || 'Failed to load payment link');
+    } finally {
+      setIsLoadingPaymentLink(false);
+    }
   };
 
   // Update API client when wallet changes
@@ -339,14 +389,43 @@ export function ZapPayUI() {
 
       {/* Main Content */}
       <div className="max-w-6xl mx-auto px-8 py-8">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        {/* Loading State */}
+        {isLoadingPaymentLink && (
+          <div className="flex items-center justify-center min-h-[400px]">
+            <div className="text-center">
+              <div className="w-12 h-12 border-4 border-orange-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+              <p className="text-gray-600">Loading payment details...</p>
+            </div>
+          </div>
+        )}
+
+        {/* Error State */}
+        {paymentLinkError && !isLoadingPaymentLink && (
+          <div className="flex items-center justify-center min-h-[400px]">
+            <div className="text-center">
+              <AlertCircle className="w-12 h-12 text-red-500 mx-auto mb-4" />
+              <h3 className="text-lg font-semibold text-gray-900 mb-2">Payment Link Error</h3>
+              <p className="text-gray-600 mb-4">{paymentLinkError}</p>
+              <Button 
+                onClick={() => navigate('/')}
+                className="bg-orange-600 hover:bg-orange-700 text-white"
+              >
+                Go Back
+              </Button>
+            </div>
+          </div>
+        )}
+
+        {/* Payment UI */}
+        {!isLoadingPaymentLink && !paymentLinkError && paymentLinkData && (
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
           {/* Payment Terminal Preview */}
           <div className="space-y-6">
             <Card className="border-amber-100 bg-gradient-to-br from-white to-amber-50/30">
               <CardHeader>
                 <CardTitle className="flex items-center text-amber-600">
                   <CreditCard className="h-5 w-5 mr-2" />
-                  Payment Terminal Preview
+                  Payment Terminal
                 </CardTitle>
               </CardHeader>
               <CardContent>
@@ -374,20 +453,17 @@ export function ZapPayUI() {
                     {/* Payment Details */}
                     <div>
                       <h3 className="text-xl font-semibold text-gray-900">
-                        {paymentData.name}
+                        {paymentLinkData?.product_name || 'Loading...'}
                       </h3>
-                      <p className="text-gray-600 text-sm mt-1">
-                        {paymentData.description}
-                      </p>
                     </div>
 
                     {/* Amount */}
                     <div className="space-y-2">
                       <div className="text-3xl font-bold text-gray-900">
-                        ${paymentData.amount}
+                        ${paymentLinkData?.pricing?.toFixed(2) || '0.00'}
                       </div>
                       <div className="text-sm text-gray-500">
-                        ≈ {getCryptoAmount(selectedCrypto)} {selectedCrypto}
+                        ≈ {getCryptoAmount(selectedCrypto, paymentLinkData?.pricing || 0).toFixed(4)} {selectedCrypto}
                       </div>
                     </div>
 
@@ -424,7 +500,7 @@ export function ZapPayUI() {
                     {/* Security Badge */}
                     <div className="flex items-center justify-center space-x-2 text-xs text-gray-500">
                       <Shield className="h-3 w-3" />
-                      <span>Secure crypto payment powered by x402</span>
+                      <span>Secure crypto payment powered by ZapPay</span>
                     </div>
                   </div>
                 </div>
@@ -478,11 +554,11 @@ export function ZapPayUI() {
                 <div className="space-y-3">
                   <div className="flex justify-between items-center">
                     <span className="text-gray-600">Product</span>
-                    <span className="font-medium">{paymentData.name}</span>
+                    <span className="font-medium">{paymentLinkData?.product_name || 'Loading...'}</span>
                   </div>
                   <div className="flex justify-between items-center">
                     <span className="text-gray-600">Amount</span>
-                    <span className="font-medium">${paymentData.amount} </span>
+                    <span className="font-medium">${paymentLinkData?.pricing?.toFixed(2) || '0.00'} </span>
                   </div>
                   <div className="flex justify-between items-center">
                     <span className="text-gray-600">Crypto Type</span>
@@ -516,7 +592,7 @@ export function ZapPayUI() {
                   </div>
                   <div className="flex justify-between items-center">
                     <span className="text-gray-600">Crypto Amount</span>
-                    <span className="font-medium">{getCryptoAmount(selectedCrypto)} {selectedCrypto}</span>
+                    <span className="font-medium">{getCryptoAmount(selectedCrypto, paymentLinkData?.pricing || 0).toFixed(4)} {selectedCrypto}</span>
                   </div>
                   <div className="flex justify-between items-center">
                     <span className="text-gray-600 text-left">Network Fee (Scroll)</span>
@@ -525,7 +601,7 @@ export function ZapPayUI() {
                   <div className="border-t pt-3">
                     <div className="flex justify-between items-center">
                       <span className="text-gray-900 font-semibold">Total</span>
-                      <span className="text-gray-900 font-semibold">${paymentData.amount} USD</span>
+                      <span className="text-gray-900 font-semibold">${paymentLinkData?.pricing?.toFixed(2) || '0.00'} USD</span>
                     </div>
                   </div>
                 </div>
@@ -567,6 +643,7 @@ export function ZapPayUI() {
             </Card>
           </div>
         </div>
+        )}
       </div>
     </div>
   );

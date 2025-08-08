@@ -44,9 +44,9 @@ import type { NavigationItem } from '@/types';
 
 const navigation: NavigationItem[] = [
   { name: 'Overview', href: '/', icon: Home },
-  { name: 'Balance', href: '/balance', icon: Wallet },
-  { name: 'Transactions', href: '/transactions', icon: CreditCard },
-  { name: 'Customers', href: '/customers', icon: Users },
+  { name: 'Balance', href: '/balance', icon: Wallet, demo: true },
+  { name: 'Transactions', href: '/transactions', icon: CreditCard, demo: true },
+  { name: 'Customers', href: '/customers', icon: Users, demo: true },
   { name: 'Products', href: '/products', icon: Package },
   { name: 'Payment Links', href: '/payment-links', icon: Link },
   { name: 'Radar', href: '/radar', icon: Shield, comingSoon: true },
@@ -107,11 +107,18 @@ export function Sidebar({ className }: SidebarProps) {
                 {!isCollapsed && (
                   <div className="flex items-center justify-between w-full min-w-0">
                     <span className="truncate">{item.name}</span>
-                    {item.comingSoon && (
-                      <Badge variant="secondary" className="ml-2 flex-shrink-0 text-xs">
-                        Soon
-                      </Badge>
-                    )}
+                    <div className="flex items-center space-x-1 ml-2 flex-shrink-0">
+                                              {item.demo && (
+                          <Badge variant="outline" className="text-xs bg-amber-50 text-orange-700 border-orange-200">
+                            Demo
+                          </Badge>
+                        )}
+                      {item.comingSoon && (
+                        <Badge variant="secondary" className="text-xs">
+                          Soon
+                        </Badge>
+                      )}
+                    </div>
                   </div>
                 )}
               </NavLink>
