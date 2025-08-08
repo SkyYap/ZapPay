@@ -232,12 +232,12 @@ export function ZapPayUI() {
     
     try {
       // Purchase 24-hour session (equivalent to the $1.00 payment)
-      const result = await api.purchase24HourSession();
+      const session = await api.purchase24HourSession();
       
       setPaymentResult({
         type: 'success',
-        message: result.message,
-        session: result.session,
+        message: 'Payment successful!',
+        session: session,
       });
       
       setPaymentStatus('completed');
@@ -458,8 +458,8 @@ export function ZapPayUI() {
                     {paymentResult.session && (
                       <div className="mt-3 text-sm text-gray-600">
                         <p><strong>Session ID:</strong> {paymentResult.session.id}</p>
-                        <p><strong>Type:</strong> {paymentResult.session.type}</p>
-                        <p><strong>Valid For:</strong> {paymentResult.session.validFor}</p>
+                        {/* <p><strong>Type:</strong> {paymentResult.session.type}</p>
+                        <p><strong>Valid For:</strong> {paymentResult.session.validFor}</p> */}
                       </div>
                     )}
                   </div>
