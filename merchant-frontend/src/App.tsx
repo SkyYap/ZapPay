@@ -30,6 +30,13 @@ function App() {
           <Route path="billing" element={<Billing />} />
         </Route>
         <Route path="/zapPayUI" element={<ZapPayUI />} />
+        <Route path="*" element={<div className="flex items-center justify-center min-h-screen">
+          <div className="text-center">
+            <h1 className="text-2xl font-bold text-gray-900 mb-4">404 - Page Not Found</h1>
+            <p className="text-gray-600 mb-4">The page you're looking for doesn't exist.</p>
+            <a href="/" className="text-blue-600 hover:text-blue-800 underline">Go back to Dashboard</a>
+          </div>
+        </div>} />
       </Routes>
     </Router>
   );
