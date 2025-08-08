@@ -62,7 +62,7 @@ const Pricing: React.FC = () => {
         <div className="text-center mb-20">
           <h2 className="text-4xl sm:text-5xl font-bold text-gray-900 mb-6">
             Stop Paying
-            <span className="bg-gradient-to-r from-[#B8860B] to-[#DAA520] bg-clip-text text-transparent"> Unnecessary Fees</span>
+            <span className="bg-gradient-to-r from-amber-500 to-orange-700 bg-clip-text text-transparent"> Unnecessary Fees</span>
           </h2>
           <p className="text-xl text-gray-600 max-w-3xl mx-auto">
             Compare traditional payment processors with our zero-fee crypto solution and see the difference.
@@ -76,7 +76,7 @@ const Pricing: React.FC = () => {
               key={index}
               className={`relative p-8 rounded-3xl transition-all duration-700 hover:scale-105 ${
                 plan.popular 
-                  ? 'bg-gradient-to-br from-[#F5F5DC] to-[#E6E6C8] shadow-2xl border-2 border-[#B8860B]' 
+                  ? 'bg-gradient-to-br from-amber-50 to-orange-50 shadow-2xl border-2 border-amber-600' 
                   : 'bg-gray-50 border border-gray-200'
               } ${
                 isVisible 
@@ -89,10 +89,10 @@ const Pricing: React.FC = () => {
             >
               {plan.popular && (
                 <div className="absolute -top-4 left-1/2 transform -translate-x-1/2">
-                  <div className="bg-[#B8860B] text-white px-6 py-2 rounded-full text-sm font-semibold flex items-center">
-                    <Star className="w-4 h-4 mr-1" />
-                    Recommended
-                  </div>
+                                  <div className="bg-gradient-to-r from-amber-500 to-orange-600 text-white px-6 py-2 rounded-full text-sm font-semibold flex items-center">
+                  <Star className="w-4 h-4 mr-1" />
+                  Recommended
+                </div>
                 </div>
               )}
 
@@ -102,7 +102,7 @@ const Pricing: React.FC = () => {
                 </h3>
                 <div className="mb-4">
                   <span className={`text-5xl font-bold ${
-                    plan.popular ? 'text-[#B8860B]' : 'text-gray-600'
+                    plan.popular ? 'text-orange-400' : 'text-gray-600'
                   }`}>
                     {plan.price}
                   </span>
@@ -116,7 +116,7 @@ const Pricing: React.FC = () => {
                 {plan.features.map((feature, featureIndex) => (
                   <div key={featureIndex} className="flex items-center">
                     {feature.included ? (
-                      <Check className="w-5 h-5 text-[#B8860B] mr-3 flex-shrink-0" />
+                      <Check className="w-5 h-5 text-amber-500 mr-3 flex-shrink-0" />
                     ) : (
                       <X className="w-5 h-5 text-red-500 mr-3 flex-shrink-0" />
                     )}
@@ -132,7 +132,7 @@ const Pricing: React.FC = () => {
               <button 
                 className={`w-full py-4 px-6 rounded-2xl font-semibold text-lg transition-all duration-300 ${
                   plan.popular 
-                    ? 'bg-gray-900 text-white hover:bg-gray-800 shadow-lg hover:shadow-xl transform hover:-translate-y-1' 
+                    ? 'bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-400 hover:to-orange-500 text-white shadow-lg hover:shadow-xl transform hover:-translate-y-1' 
                     : 'bg-gray-200 text-gray-500 cursor-not-allowed'
                 } ${
                   plan.disabled ? 'cursor-not-allowed' : ''
@@ -146,7 +146,7 @@ const Pricing: React.FC = () => {
         </div>
 
         {/* Savings calculator */}
-        <div className={`mt-20 bg-gradient-to-r from-[#F5F5DC] to-[#E6E6C8] p-8 rounded-3xl text-center transition-all duration-1000 delay-600 ${
+        <div className={`mt-20 bg-gradient-to-r from-amber-50 to-orange-50 p-8 rounded-3xl text-center transition-all duration-1000 delay-600 ${
           isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
         }`}>
           <h3 className="text-2xl font-bold text-gray-900 mb-4">
@@ -155,17 +155,17 @@ const Pricing: React.FC = () => {
           <p className="text-gray-700 mb-6">
             A merchant processing $10,000/month saves <strong>$320</strong> in fees PLUS earns <strong>$133</strong> monthly interest.
           </p>
-          <div className="grid sm:grid-cols-3 gap-6 text-center">
+                      <div className="grid sm:grid-cols-3 gap-6 text-center">
             <div>
-              <div className="text-3xl font-bold text-[#B8860B]">$453</div>
+              <div className="text-3xl font-bold text-orange-400">$453</div>
               <div className="text-sm text-gray-600">Total Monthly Benefit</div>
             </div>
             <div>
-              <div className="text-3xl font-bold text-[#B8860B]">$5,436</div>
+              <div className="text-3xl font-bold text-orange-400">$5,436</div>
               <div className="text-sm text-gray-600">Annual Benefit</div>
             </div>
             <div>
-              <div className="text-3xl font-bold text-[#B8860B]">4%</div>
+              <div className="text-3xl font-bold text-orange-400">4%</div>
               <div className="text-sm text-gray-600">Interest Rate</div>
             </div>
           </div>

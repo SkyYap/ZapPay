@@ -43,7 +43,7 @@ const Integration: React.FC = () => {
         <div className="text-center mb-20">
           <h2 className="text-4xl sm:text-5xl font-bold text-gray-900 mb-6">
             Seamless Integration with
-            <span className="bg-gradient-to-r from-[#B8860B] to-[#DAA520] bg-clip-text text-transparent"> Shopify and WordPress</span>
+            <span className="bg-gradient-to-r from-amber-500 to-orange-700 bg-clip-text text-transparent"> Shopify and WordPress</span>
           </h2>
           <p className="text-xl text-gray-600 max-w-3xl mx-auto">
             Get up and running in minutes with our one-click plugins for WordPress and Shopify.
@@ -62,7 +62,7 @@ const Integration: React.FC = () => {
             
             {integrationSteps.map((item, index) => (
               <div key={index} className="flex items-start space-x-4 group">
-                <div className="flex-shrink-0 w-10 h-10 bg-[#F5F5DC] rounded-full flex items-center justify-center text-[#B8860B] font-semibold group-hover:bg-[#B8860B] group-hover:text-white transition-colors duration-300">
+                <div className="flex-shrink-0 w-10 h-10 bg-orange-100 rounded-full flex items-center justify-center text-amber-600 font-semibold group-hover:bg-gradient-to-r group-hover:from-amber-500 group-hover:to-orange-500 group-hover:text-white transition-all duration-300">
                   {item.step}
                 </div>
                 <div>
@@ -77,13 +77,13 @@ const Integration: React.FC = () => {
             ))}
 
             <div className="pt-6 flex gap-4">
-              <button className="group bg-[#21759B] text-white px-8 py-4 rounded-2xl font-semibold hover:bg-[#1a5a7a] transition-all duration-300 flex items-center">
+              <button className="group bg-gradient-to-r from-amber-600 to-orange-600 hover:from-amber-700 hover:to-orange-700 text-white px-8 py-4 rounded-2xl font-semibold transition-all duration-300 flex items-center">
                 <Globe className="mr-2 w-5 h-5" />
                 WordPress Plugin
                 <ArrowRight className="ml-2 w-5 h-5 group-hover:translate-x-1 transition-transform duration-300" />
               </button>
               
-              <button className="group bg-[#96BF48] text-white px-8 py-4 rounded-2xl font-semibold hover:bg-[#7a9a3a] transition-all duration-300 flex items-center">
+              <button className="group bg-gradient-to-r from-amber-600 to-orange-600 hover:from-amber-700 hover:to-orange-700 text-white px-8 py-4 rounded-2xl font-semibold transition-all duration-300 flex items-center">
                 <ShoppingCart className="mr-2 w-5 h-5" />
                 Shopify Plugin
                 <ArrowRight className="ml-2 w-5 h-5 group-hover:translate-x-1 transition-transform duration-300" />
@@ -110,7 +110,7 @@ const Integration: React.FC = () => {
                   '24/7 technical support'
                 ].map((feature, index) => (
                   <div key={index} className="flex items-center space-x-3">
-                    <CheckCircle className="w-5 h-5 text-[#B8860B] flex-shrink-0" />
+                    <CheckCircle className="w-5 h-5 text-orange-400 flex-shrink-0" />
                     <span className="text-gray-700">{feature}</span>
                   </div>
                 ))}

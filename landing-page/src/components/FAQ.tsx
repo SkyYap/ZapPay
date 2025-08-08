@@ -74,7 +74,7 @@ const FAQ: React.FC = () => {
         <div className="text-center mb-16">
           <h2 className="text-4xl sm:text-5xl font-bold text-gray-900 mb-6">
             Frequently Asked
-            <span className="bg-gradient-to-r from-[#B8860B] to-[#DAA520] bg-clip-text text-transparent"> Questions</span>
+            <span className="bg-gradient-to-r from-amber-500 to-orange-600 bg-clip-text text-transparent"> Questions</span>
           </h2>
           <p className="text-xl text-gray-600">
             Everything you need to know about accepting crypto payments
@@ -102,9 +102,9 @@ const FAQ: React.FC = () => {
                 </h3>
                 <div className="flex-shrink-0">
                   {openIndex === index ? (
-                    <ChevronUp className="w-5 h-5 text-[#B8860B]" />
+                    <ChevronUp className="w-5 h-5 text-orange-500" />
                   ) : (
-                    <ChevronDown className="w-5 h-5 text-gray-400" />
+                    <ChevronDown className="w-5 h-5 text-orange-500" />
                   )}
                 </div>
               </button>
@@ -128,14 +128,14 @@ const FAQ: React.FC = () => {
         <div className={`mt-16 text-center transition-all duration-1000 delay-800 ${
           isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
         }`}>
-          <div className="bg-gradient-to-r from-[#F5F5DC] to-[#E6E6C8] p-8 rounded-3xl">
+          <div className="bg-gradient-to-r from-amber-50 to-orange-50 p-8 rounded-3xl">
             <h3 className="text-2xl font-bold text-gray-900 mb-4">
               Still have questions?
             </h3>
             <p className="text-gray-700 mb-6">
               Our crypto payment experts are here to help you get started
             </p>
-            <button className="bg-gray-900 text-white px-8 py-4 rounded-2xl font-semibold hover:bg-gray-800 transition-colors duration-300">
+            <button className="bg-gradient-to-r from-amber-600 to-orange-600 hover:from-amber-500 hover:to-orange-500 hover:shadow-xl transform hover:-translate-y-1 text-white px-8 py-4 rounded-2xl font-semibold transition-colors duration-300">
               Schedule a Demo
             </button>
           </div>

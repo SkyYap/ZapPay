@@ -22,7 +22,7 @@ const Features: React.FC = () => {
     {
       icon: <Zap className="w-8 h-8" />,
       title: "Instant Settlements",
-      description: "Receive payments directly to your wallet within seconds, not days.",
+      description: "Receive payments instantly to your wallet within seconds, not days.",
       highlight: true
     },
     {
@@ -74,7 +74,7 @@ const Features: React.FC = () => {
         <div className="text-center mb-20">
           <h2 className="text-4xl sm:text-5xl font-bold text-gray-900 mb-6">
             Why Choose Our
-            <span className="bg-gradient-to-r from-[#B8860B] to-[#DAA520] bg-clip-text text-transparent"> Solution</span>
+            <span className="bg-gradient-to-r from-amber-500 to-orange-600 bg-clip-text text-transparent"> Solution</span>
           </h2>
           <p className="text-xl text-gray-600 max-w-3xl mx-auto">
             Built specifically for e-commerce merchants who want to embrace the future of payments without complexity.
@@ -89,7 +89,7 @@ const Features: React.FC = () => {
               data-index={index}
               className={`relative group p-8 rounded-3xl transition-all duration-700 hover:scale-105 ${
                 feature.highlight 
-                  ? 'bg-gradient-to-br from-[#F5F5DC] to-[#E6E6C8] shadow-lg' 
+                  ? 'bg-gradient-to-br from-amber-50 to-orange-50 shadow-lg' 
                   : 'bg-gray-50 hover:bg-gray-100'
               } ${
                 visibleItems.includes(index) 
@@ -99,15 +99,15 @@ const Features: React.FC = () => {
               style={{ transitionDelay: `${index * 100}ms` }}
             >
               {feature.highlight && (
-                <div className="absolute -top-3 -right-3 bg-[#B8860B] text-white px-3 py-1 rounded-full text-sm font-semibold">
+                <div className="absolute -top-3 -right-3 bg-gradient-to-r from-amber-500 to-orange-500 text-white px-3 py-1 rounded-full text-sm font-semibold">
                   Most Popular
                 </div>
               )}
               
               <div className={`inline-flex p-3 rounded-2xl mb-6 ${
                 feature.highlight 
-                  ? 'bg-white text-[#B8860B]' 
-                  : 'bg-[#F5F5DC] text-gray-700'
+                  ? 'bg-white text-amber-600' 
+                  : 'bg-amber-50 text-gray-700'
               }`}>
                 {feature.icon}
               </div>
@@ -132,7 +132,7 @@ const Features: React.FC = () => {
             { number: '< 5 min', label: 'Setup Time' }
           ].map((stat, index) => (
             <div key={index} className="text-center">
-              <div className="text-3xl sm:text-4xl font-bold text-[#B8860B] mb-2">
+              <div className="text-3xl sm:text-4xl font-bold text-orange-400 mb-2">
                 {stat.number}
               </div>
               <div className="text-gray-600">

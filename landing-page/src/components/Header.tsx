@@ -47,10 +47,10 @@ const Header: React.FC = () => {
               <a
                 key={item.name}
                 href={item.href}
-                className="text-gray-700 hover:text-[#B8860B] font-medium transition-colors duration-200 relative group"
+                className="text-gray-700 hover:text-orange-500 font-medium transition-colors duration-200 relative group"
               >
                 {item.name}
-                <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-[#B8860B] transition-all duration-300 group-hover:w-full"></span>
+                <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-amber-500 transition-all duration-300 group-hover:w-full"></span>
               </a>
             ))}
           </nav>
@@ -62,7 +62,7 @@ const Header: React.FC = () => {
             </button> */}
             <button 
               onClick={() => window.open('https://zappay-merchant-frontend.onrender.com', '_blank')}
-              className="group bg-gray-900 text-white px-6 py-3 rounded-xl font-semibold hover:bg-gray-800 transition-all duration-300 flex items-center shadow-lg hover:shadow-xl transform hover:-translate-y-0.5"
+              className="group bg-gradient-to-r from-amber-600 to-orange-600 hover:from-amber-400 hover:to-orange-500 text-white px-6 py-3 rounded-xl font-semibold transition-all duration-300 flex items-center shadow-lg hover:shadow-xl transform hover:-translate-y-0.5"
             >
               Open App
               <ArrowRight className="ml-2 w-4 h-4 group-hover:translate-x-1 transition-transform duration-300" />
@@ -104,8 +104,8 @@ const Header: React.FC = () => {
                 Sign In
               </button>
               <button 
-                onClick={() => window.open('http://localhost:5174/', '_blank')}
-                className="bg-gray-900 text-white px-6 py-3 rounded-xl font-semibold hover:bg-gray-800 transition-colors duration-300 flex items-center justify-center"
+                onClick={() => window.open('https://zappay-merchant-frontend.onrender.com', '_blank')}
+                className="bg-gradient-to-r from-amber-600 to-orange-600 hover:from-amber-700 hover:to-orange-700 text-white px-6 py-3 rounded-xl font-semibold transition-colors duration-300 flex items-center justify-center"
               >
                 Get Started Free
                 <ArrowRight className="ml-2 w-4 h-4" />
