@@ -77,7 +77,7 @@ const api = {
   },
 };
 
-export function CryptoPayUI() {
+export function ZapPayUI() {
   const [isWalletConnected, setIsWalletConnected] = useState(false);
   const [address, setAddress] = useState<Hex | null>(null);
   const [walletClient, setWalletClient] = useState<WalletClient | null>(null);

@@ -10,7 +10,7 @@ import { PaymentLinks } from '@/pages/PaymentLinks';
 import { Reporting } from '@/pages/Reporting';
 import { Terminal } from '@/pages/Terminal';
 import { Billing } from '@/pages/Billing';
-import { CryptoPayUI } from '@/pages/CryptoPayUI';
+import { ZapPayUI } from '@/pages/ZapPayUI';
 import './App.css';
 
 function App() {
@@ -29,7 +29,7 @@ function App() {
           <Route path="terminal" element={<Terminal />} />
           <Route path="billing" element={<Billing />} />
         </Route>
-        <Route path="/cryptoPayUI" element={<CryptoPayUI />} />
+        <Route path="/zapPayUI" element={<ZapPayUI />} />
       </Routes>
     </Router>
   );

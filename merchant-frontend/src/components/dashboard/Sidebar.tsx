@@ -128,7 +128,7 @@ export function Sidebar({ className }: SidebarProps) {
               <div className="flex items-center space-x-3 w-full">
                 <Avatar className="h-8 w-8 flex-shrink-0">
                   <AvatarImage src="/avatars/01.png" alt="@zappay" />
-                  <AvatarFallback>CP</AvatarFallback>
+                  <AvatarFallback>ZP</AvatarFallback>
                 </Avatar>
                 {!isCollapsed && (
                   <>
@@ -146,7 +146,7 @@ export function Sidebar({ className }: SidebarProps) {
               <div className="flex items-center space-x-2">
                 <Avatar className="h-8 w-8">
                   <AvatarImage src="/avatars/01.png" alt="@zappay" />
-                  <AvatarFallback>CP</AvatarFallback>
+                  <AvatarFallback>ZP</AvatarFallback>
                 </Avatar>
                 <div>
                   <p className="text-sm font-medium leading-none">ZapPay</p>
