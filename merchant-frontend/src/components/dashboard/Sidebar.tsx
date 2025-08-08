@@ -12,7 +12,6 @@ import {
   BarChart3,
   Monitor,
   Receipt,
-  Bitcoin,
   ChevronDown,
   Settings,
   LogOut,
