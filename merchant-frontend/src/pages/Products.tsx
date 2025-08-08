@@ -1,24 +1,10 @@
 import { useState } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Badge } from '@/components/ui/badge';
-import { StatusBadge } from '@/components/common/StatusBadge';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
 import { 
-  Search, 
   Plus, 
   Package,
-  DollarSign,
-  Edit,
   MoreVertical,
-  Image as ImageIcon,
   BarChart3,
   ChevronDown,
   X,
@@ -28,22 +14,11 @@ import {
 import { mockProducts } from '@/data/mockData';
 
 export function Products() {
-  const [searchTerm, setSearchTerm] = useState('');
-  const [categoryFilter, setCategoryFilter] = useState<string>('all');
-  const [statusFilter, setStatusFilter] = useState<string>('all');
   const [selectedStatus, setSelectedStatus] = useState<string>('active');
   const [selectAll, setSelectAll] = useState(false);
   const [selectedItems, setSelectedItems] = useState<Set<string>>(new Set());
 
-  const filteredProducts = mockProducts.filter(product => {
-    const matchesSearch = product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         product.category.toLowerCase().includes(searchTerm.toLowerCase());
-    
-    const matchesCategory = categoryFilter === 'all' || product.category === categoryFilter;
-    const matchesStatus = statusFilter === 'all' || product.status === statusFilter;
-    
-    return matchesSearch && matchesCategory && matchesStatus;
-  });
+  const filteredProducts = mockProducts;
 
   const handleSelectAll = () => {
     if (selectAll) {
@@ -67,10 +42,7 @@ export function Products() {
     setSelectAll(newSelected.size === filteredProducts.length);
   };
 
-  const categories = [...new Set(mockProducts.map(p => p.category))];
-  const totalValue = mockProducts.reduce((sum, product) => 
-    sum + (product.price * product.stock), 0
-  );
+
 
   return (
     <div className="p-4 space-y-6">

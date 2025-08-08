@@ -14,7 +14,7 @@ const FAQ: React.FC = () => {
   const faqs: FAQItem[] = [
     {
       question: "How do I earn 4% interest on my stablecoins?",
-      answer: "Simply hold USDC or USDT in your CryptoPay wallet and earn up to 4% annual interest automatically. Interest is calculated daily and paid monthly. Your funds remain liquid and accessible at all times."
+      answer: "Simply hold USDC or USDT in your ZapPay wallet and earn up to 4% annual interest automatically. Interest is calculated daily and paid monthly. Your funds remain liquid and accessible at all times."
     },
     {
       question: "How secure are cryptocurrency payments?",
@@ -34,7 +34,7 @@ const FAQ: React.FC = () => {
     },
     {
       question: "What about price volatility?",
-      answer: "We offer optional instant conversion to stablecoins (USDC, USDT) to eliminate volatility concerns. Plus, holding stablecoins in your CryptoPay wallet earns you up to 4% annual interest while maintaining price stability."
+      answer: "We offer optional instant conversion to stablecoins (USDC, USDT) to eliminate volatility concerns. Plus, holding stablecoins in your ZapPay wallet earns you up to 4% annual interest while maintaining price stability."
     },
     {
       question: "Is there really no setup fee or monthly cost?",

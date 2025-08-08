@@ -1,69 +1,23 @@
 import { useState } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Badge } from '@/components/ui/badge';
-import { StatusBadge } from '@/components/common/StatusBadge';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
 import { 
-  Search, 
-  Filter, 
   Download, 
-  ExternalLink,
-  Calendar,
-  CreditCard,
-  Clock,
   Plus,
   Settings,
   MoreVertical,
   BarChart3
 } from 'lucide-react';
 import { mockTransactions } from '@/data/mockData';
-import type { Transaction } from '@/types';
 
 export function Transactions() {
-  const [searchTerm, setSearchTerm] = useState('');
-  const [statusFilter, setStatusFilter] = useState<string>('all');
-  const [typeFilter, setTypeFilter] = useState<string>('all');
   const [selectedStatus, setSelectedStatus] = useState<string>('all');
   const [selectAll, setSelectAll] = useState(false);
   const [selectedItems, setSelectedItems] = useState<Set<string>>(new Set());
 
-  const filteredTransactions = mockTransactions.filter(transaction => {
-    const matchesSearch = transaction.customer.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         transaction.customer.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         transaction.id.toLowerCase().includes(searchTerm.toLowerCase());
-    
-    const matchesStatus = statusFilter === 'all' || transaction.status === statusFilter;
-    const matchesType = typeFilter === 'all' || transaction.type === typeFilter;
-    
-    return matchesSearch && matchesStatus && matchesType;
-  });
+  const filteredTransactions = mockTransactions;
 
-  const getTypeIcon = (type: Transaction['type']) => {
-    switch (type) {
-      case 'payment':
-        return <CreditCard className="h-4 w-4 text-green-600" />;
-      case 'withdrawal':
-        return <ExternalLink className="h-4 w-4 text-blue-600" />;
-      case 'deposit':
-        return <ExternalLink className="h-4 w-4 text-purple-600" />;
-      default:
-        return <CreditCard className="h-4 w-4 text-gray-600" />;
-    }
-  };
 
-  const formatCryptoAmount = (amount: number, currency: string) => {
-    if (currency === 'BTC') return amount.toFixed(8);
-    if (currency === 'ETH') return amount.toFixed(6);
-    return amount.toFixed(2);
-  };
 
   const handleSelectAll = () => {
     if (selectAll) {
@@ -279,7 +233,13 @@ export function Transactions() {
                       <span className="text-sm font-medium text-gray-900">
                         ${transaction.amount.toFixed(2)}
                       </span>
-                      <StatusBadge status={transaction.status} />
+                      <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                        transaction.status === 'completed' ? 'bg-green-100 text-green-800' :
+                        transaction.status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
+                        'bg-red-100 text-red-800'
+                      }`}>
+                        {transaction.status}
+                      </span>
                     </div>
                   </td>
                   <td className="px-4 py-3">
@@ -287,11 +247,7 @@ export function Transactions() {
                       {(() => {
                         const methods = ['USDT', 'USDC', 'ETH'] as const;
                         const method = methods[index % methods.length];
-                        const colors = {
-                          'USDT': 'bg-green-100 text-green-600',
-                          'USDC': 'bg-blue-100 text-blue-600',
-                          'ETH': 'bg-purple-100 text-purple-600'
-                        } as const;
+
                         return (
                           <>
                             <span className="text-sm text-gray-900">{method}</span>

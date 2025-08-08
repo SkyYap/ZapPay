@@ -40,7 +40,7 @@ const Footer: React.FC = () => {
               <div className="w-10 h-10 bg-[#F5F5DC] rounded-lg flex items-center justify-center mr-3">
                 <span className="text-gray-900 font-bold text-xl">C</span>
               </div>
-              <span className="text-2xl font-bold">CryptoPay</span>
+              <span className="text-2xl font-bold">ZapPay</span>
             </div>
             
             <p className="text-gray-400 mb-6 leading-relaxed">
@@ -52,7 +52,7 @@ const Footer: React.FC = () => {
             <div className="space-y-3">
               <div className="flex items-center text-gray-400">
                 <Mail className="w-4 h-4 mr-3" />
-                <span>support@cryptopay.com</span>
+                <span>support@zappay.com</span>
               </div>
               <div className="flex items-center text-gray-400">
                 <Phone className="w-4 h-4 mr-3" />
@@ -154,7 +154,7 @@ const Footer: React.FC = () => {
         {/* Bottom bar */}
         <div className="border-t border-gray-800 pt-8 flex flex-col sm:flex-row justify-between items-center">
           <div className="text-gray-400 mb-4 sm:mb-0">
-            © 2024 CryptoPay. All rights reserved.
+            © 2025 ZapPay. All rights reserved.
           </div>
           
           {/* Social links */}

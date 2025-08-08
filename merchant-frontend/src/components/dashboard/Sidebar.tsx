@@ -20,7 +20,6 @@ import {
   Building2,
   Users2,
   Info,
-  ArrowRight
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -63,7 +62,7 @@ interface SidebarProps {
 
 export function Sidebar({ className }: SidebarProps) {
   const location = useLocation();
-  const [isCollapsed, setIsCollapsed] = useState(false);
+  const [isCollapsed] = useState(false);
 
   return (
     <div className={cn(
@@ -74,9 +73,13 @@ export function Sidebar({ className }: SidebarProps) {
       {/* Logo */}
       <div className="flex h-14 items-center border-b px-4">
         <div className="flex items-center space-x-2">
-          <Bitcoin className="h-6 w-6 text-primary" />
+          <img 
+            src="/src/assets/zappay-logo-white.png" 
+            alt="ZapPay Logo" 
+            className="h-6 w-6 object-contain"
+          />
           {!isCollapsed && (
-            <span className="font-semibold">CryptoPay</span>
+            <span className="font-semibold">ZapPay</span>
           )}
         </div>
       </div>
@@ -125,13 +128,13 @@ export function Sidebar({ className }: SidebarProps) {
             <Button variant="ghost" className="w-full justify-start p-2 h-auto bg-white hover:bg-gray-100 text-gray-900">
               <div className="flex items-center space-x-3 w-full">
                 <Avatar className="h-8 w-8 flex-shrink-0">
-                  <AvatarImage src="/avatars/01.png" alt="@cryptopay" />
+                  <AvatarImage src="/avatars/01.png" alt="@zappay" />
                   <AvatarFallback>CP</AvatarFallback>
                 </Avatar>
                 {!isCollapsed && (
                   <>
                     <div className="flex-1 min-w-0 text-left">
-                      <p className="text-sm font-medium truncate">CryptoPay</p>
+                      <p className="text-sm font-medium truncate">ZapPay</p>
                     </div>
                     <ChevronDown className="h-4 w-4 text-gray-500 flex-shrink-0" />
                   </>
@@ -143,11 +146,11 @@ export function Sidebar({ className }: SidebarProps) {
             <DropdownMenuLabel className="font-normal">
               <div className="flex items-center space-x-2">
                 <Avatar className="h-8 w-8">
-                  <AvatarImage src="/avatars/01.png" alt="@cryptopay" />
+                  <AvatarImage src="/avatars/01.png" alt="@zappay" />
                   <AvatarFallback>CP</AvatarFallback>
                 </Avatar>
                 <div>
-                  <p className="text-sm font-medium leading-none">CryptoPay</p>
+                  <p className="text-sm font-medium leading-none">ZapPay</p>
                 </div>
               </div>
             </DropdownMenuLabel>
@@ -199,7 +202,7 @@ export function Sidebar({ className }: SidebarProps) {
                 <div className="mr-2 h-4 w-4 rounded-full bg-blue-100 flex items-center justify-center">
                   <span className="text-xs text-blue-600">C</span>
                 </div>
-                <span className="flex-1">CryptoPay</span>
+                <span className="flex-1">ZapPay</span>
               </div>
             </DropdownMenuItem>
             

@@ -1,13 +1,11 @@
 import { useState, useCallback, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
 import { 
   Wallet, 
   CreditCard, 
   Shield, 
   CheckCircle,
-  ArrowRight,
   ChevronDown
 } from 'lucide-react';
 import { createWalletClient, custom, type WalletClient } from 'viem';
@@ -301,7 +299,7 @@ export function CryptoPayUI() {
               <div className="w-8 h-8 bg-gradient-to-r from-amber-400 to-orange-400 rounded-lg flex items-center justify-center">
                 <CreditCard className="h-5 w-5 text-white" />
               </div>
-              <h1 className="text-xl font-bold text-gray-900">CryptoPay</h1>
+              <h1 className="text-xl font-bold text-gray-900">ZapPay</h1>
             </div>
             <div className="relative">
               {isWalletConnected && address ? (
@@ -522,7 +520,7 @@ export function CryptoPayUI() {
                   </div>
                   <div className="flex justify-between items-center">
                     <span className="text-gray-600 text-left">Network Fee (Scroll)</span>
-                    <span className="font-medium text-right">Free! Subsidy by CryptoPay</span>
+                    <span className="font-medium text-right">Free! Subsidy by ZapPay</span>
                   </div>
                   <div className="border-t pt-3">
                     <div className="flex justify-between items-center">

@@ -11,7 +11,7 @@ function App() {
     <div className="min-h-screen">
       {/* SEO and meta tags */}
       <div className="hidden">
-        <h1>CryptoPay - Zero Fee Crypto Payments + Earn 4% Interest on Stablecoins</h1>
+        <h1> ZapPay - Zero Fee Crypto Payments + Earn 4% Interest on Stablecoins</h1>
         <meta name="description" content="Accept crypto payments with 0% fees AND earn up to 4% interest on stablecoins. WordPress and Shopify integration, instant settlements, FDIC-insured." />
         <meta name="keywords" content="crypto payments, cryptocurrency, wordpress payments, shopify payments, zero fees, earn interest, stablecoin interest, USDC, USDT" />
       </div>

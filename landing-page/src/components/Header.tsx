@@ -32,9 +32,13 @@ const Header: React.FC = () => {
           {/* Logo */}
           <div className="flex items-center">
             <div className="w-10 h-10 bg-[#F5F5DC] rounded-xl flex items-center justify-center mr-3 shadow-sm">
-              <span className="text-gray-900 font-bold text-xl">C</span>
+              <img 
+                src="/src/assets/zappay-logo-white.png" 
+                alt="ZapPay Logo" 
+                className="w-8 h-8 object-contain"
+              />
             </div>
-            <span className="text-2xl font-bold text-gray-900">CryptoPay</span>
+            <span className="text-2xl font-bold text-gray-900">ZapPay</span>
           </div>
 
           {/* Desktop Navigation */}

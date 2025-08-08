@@ -1,7 +1,6 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Shield, AlertTriangle, CheckCircle, Zap, Activity, Eye, Lock } from 'lucide-react';
+import { Shield, AlertTriangle, Zap, Activity, Lock } from 'lucide-react';
 
 export function Radar() {
   return (

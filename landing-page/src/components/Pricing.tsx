@@ -36,7 +36,7 @@ const Pricing: React.FC = () => {
       disabled: true
     },
     {
-      name: "CryptoPay",
+      name: "ZapPay",
       price: "0%",
       description: "transaction fees",
       features: [

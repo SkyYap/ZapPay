@@ -1,8 +1,8 @@
-# CryptoPay 
+# ZapPay 
 
-> CryptoPay is a cryptocurrency payment protocol built on top of the x402 protocol. This protocol enables merchants to accept crypto payments seamlessly via a Stripe-like experience.
+> ZapPay is a cryptocurrency payment protocol built on top of the x402 protocol. This protocol enables merchants to accept crypto payments seamlessly via a Stripe-like experience.
 
-We extend Coinbase's x402 protocol to become the first 0% rate web3 payment gateway and deploy our facilitator on Scroll. We also provide up to 4.5% interest for stablecoins held in our accounts. We prepare ready WordPress plugins, Shopify plugins and allow merchants to accept crypto payments in 7 lines of code.  
+We extend Coinbase's x402 protocol to become the first 0% rate web3 payment gateway and deploy our facilitator on Scroll. We also provide up to 4% interest for stablecoins held in our accounts. We prepare ready WordPress plugins, Shopify plugins and allow merchants to accept crypto payments in 7 lines of code.  
 
 ## 🚀 Project Overview
 
@@ -10,7 +10,7 @@ This project is a fork of the x402 protocol example, enhanced with landing page,
 
 - **Client**: Browser wallet integration for end users
 - **Server**: Backend API for payment processing
-- **Landing Page**: Marketing website for the CryptoPay
+- **Landing Page**: Marketing website for the ZapPay
 - **Merchant Frontend**: Dashboard for merchants to manage payments
 
 ## 📁 Project Structure

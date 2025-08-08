@@ -1,7 +1,6 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Monitor, Smartphone, Tablet, Zap, Clock } from 'lucide-react';
+import { Monitor, Smartphone, Tablet, Zap } from 'lucide-react';
 
 export function Terminal() {
   return (

@@ -1,18 +1,12 @@
 import { useState } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Badge } from '@/components/ui/badge';
-import { Checkbox } from '@/components/ui/checkbox';
 import { 
-  Search, 
   UserPlus, 
   Mail, 
   Calendar,
-  DollarSign,
   CreditCard,
   MoreVertical,
-  Eye,
   Copy,
   Download,
   BarChart3,
@@ -24,7 +18,6 @@ import {
 import { mockCustomers } from '@/data/mockData';
 
 export function Customers() {
-  const [searchTerm, setSearchTerm] = useState('');
   const [selectedSegment, setSelectedSegment] = useState('all');
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
@@ -46,10 +39,7 @@ export function Customers() {
     { id: 'edit-columns', label: 'Edit columns', icon: Settings },
   ];
 
-  const filteredCustomers = mockCustomers.filter(customer =>
-    customer.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    customer.email.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const filteredCustomers = mockCustomers;
 
   const totalPages = Math.ceil(filteredCustomers.length / itemsPerPage);
   const startIndex = (currentPage - 1) * itemsPerPage;
@@ -350,7 +340,7 @@ export function Customers() {
       {filteredCustomers.length === 0 && (
         <Card className="border-gray-200">
           <CardContent className="text-center py-8 text-gray-500">
-            <Search className="h-12 w-12 mx-auto mb-4 opacity-50" />
+            <div className="h-12 w-12 mx-auto mb-4 opacity-50 bg-gray-200 rounded" />
             <p>No customers found matching your search.</p>
             <p className="text-sm mt-1">Try adjusting your search criteria.</p>
           </CardContent>

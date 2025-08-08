@@ -16,7 +16,6 @@ export function StatCard({
   title,
   value,
   change,
-  changeLabel = 'vs last month',
   icon,
   className,
   loading = false

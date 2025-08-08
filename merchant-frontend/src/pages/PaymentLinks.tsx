@@ -5,7 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Textarea } from '@/components/ui/textarea';
-import { Switch } from '@/components/ui/switch';
+
 import { 
   Plus, 
   Copy, 
@@ -237,7 +237,7 @@ export function PaymentLinks() {
                         Pay with Crypto
                       </Button>
                       <p className="text-xs text-gray-500">
-                        Secure crypto payment powered by CryptoPay
+                        Secure crypto payment powered by ZapPay
                       </p>
                     </div>
                   </div>
