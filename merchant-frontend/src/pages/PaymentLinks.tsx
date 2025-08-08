@@ -321,7 +321,7 @@ export function PaymentLinks() {
                         variant="ghost"
                         size="sm"
                         className="bg-white border border-gray-200 hover:bg-gray-50"
-                        onClick={() => window.open('http://localhost:5173/cryptoPayUI', '_blank')}
+                        onClick={() => window.open('https://zappay-merchant-frontend.onrender.com/cryptoPayUI', '_blank')}
                       >
                         <ExternalLink className="h-3 w-3 text-gray-600" />
                       </Button>
