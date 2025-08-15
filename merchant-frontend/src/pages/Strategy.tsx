@@ -25,10 +25,6 @@ import {
   Target,
   TrendingUp,
   DollarSign,
-  Clock,
-  Percent,
-  AlertCircle,
-  Info,
   Play,
   Pause,
   Settings
