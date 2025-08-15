@@ -96,6 +96,27 @@ export interface ChartData {
   customers: number;
 }
 
+export interface Strategy {
+  id: string;
+  name: string;
+  type: 'limit_order' | 'dca';
+  status: 'active' | 'paused' | 'completed';
+  token: string;
+  conditions: StrategyCondition[];
+  createdAt: string;
+  totalInvested: number;
+  totalTokens: number;
+}
+
+export interface StrategyCondition {
+  id: string;
+  type: 'percentage' | 'amount' | 'time';
+  value: number;
+  unit: string;
+  operator: 'equals' | 'greater_than' | 'less_than' | 'between';
+  maxValue?: number;
+}
+
 export type NavigationItem = {
   name: string;
   href: string;

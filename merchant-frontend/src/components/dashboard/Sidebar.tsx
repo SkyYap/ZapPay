@@ -19,6 +19,7 @@ import {
   Building2,
   Users2,
   Info,
+  Target,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -49,6 +50,7 @@ const navigation: NavigationItem[] = [
   { name: 'Customers', href: '/customers', icon: Users, demo: true },
   { name: 'Products', href: '/products', icon: Package },
   { name: 'Payment Links', href: '/payment-links', icon: Link },
+  { name: 'Strategy', href: '/strategy', icon: Target },
   { name: 'Radar', href: '/radar', icon: Shield, comingSoon: true },
   { name: 'Analytics', href: '/reporting', icon: BarChart3, comingSoon: true },
   { name: 'Terminal', href: '/terminal', icon: Monitor, comingSoon: true },

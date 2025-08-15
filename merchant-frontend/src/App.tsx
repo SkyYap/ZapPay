@@ -7,6 +7,7 @@ import { Customers } from '@/pages/Customers';
 import { Products } from '@/pages/Products';
 import { Radar } from '@/pages/Radar';
 import { PaymentLinks } from '@/pages/PaymentLinks';
+import { Strategy } from '@/pages/Strategy';
 import { Reporting } from '@/pages/Reporting';
 import { Terminal } from '@/pages/Terminal';
 import { Billing } from '@/pages/Billing';
@@ -24,6 +25,7 @@ function App() {
           <Route path="customers" element={<Customers />} />
           <Route path="products" element={<Products />} />
           <Route path="payment-links" element={<PaymentLinks />} />
+          <Route path="strategy" element={<Strategy />} />
           <Route path="radar" element={<Radar />} />
           <Route path="reporting" element={<Reporting />} />
           <Route path="terminal" element={<Terminal />} />
