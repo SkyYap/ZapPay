@@ -13,7 +13,7 @@
     "dotenv": "^16.5.0",
     "hono": "^4.6.17",
     "uuid": "^11.0.6",
-    "x402-hono": "^0.4.0"
+    "x402-hono": "file:../x402-packages/packages/x402-hono"
   },
   "devDependencies": {
     "@types/node": "^22.15.3",

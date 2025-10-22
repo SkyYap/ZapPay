@@ -12,20 +12,22 @@ config();
 // Configuration from environment variables
 const facilitatorUrl = process.env.FACILITATOR_URL as Resource || "https://x402.org/facilitator";
 const payTo = process.env.ADDRESS as `0x${string}`;
-const network = (process.env.NETWORK as Network) || "base-sepolia";
+const network = (process.env.NETWORK as Network) || "scroll";
 const port = parseInt(process.env.PORT || "3001");
 
 // Supabase configuration
 const supabaseUrl = process.env.SUPABASE_URL;
+const supabaseAnonKey = process.env.SUPABASE_ANON_KEY;
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
-if (!supabaseUrl || !supabaseServiceKey) {
-  console.error("❌ Please set SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY in the .env file");
+if (!supabaseUrl || !supabaseAnonKey || !supabaseServiceKey) {
+  console.error("❌ Please set SUPABASE_URL, SUPABASE_ANON_KEY, and SUPABASE_SERVICE_ROLE_KEY in the .env file");
   process.exit(1);
 }
 
-// Initialize Supabase client
-const supabase = createClient(supabaseUrl, supabaseServiceKey);
+// Initialize Supabase clients
+const supabase = createClient(supabaseUrl, supabaseAnonKey);
+const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey);
 
 if (!payTo) {
   console.error("❌ Please set your wallet ADDRESS in the .env file");
@@ -38,6 +40,27 @@ const app = new Hono();
 app.use("/*", cors({
   origin: ["http://localhost:5173", "http://localhost:3000", "http://localhost:5174"],
   credentials: true,
+  allowMethods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+  allowHeaders: [
+    "Content-Type", 
+    "Authorization", 
+    "X-Requested-With", 
+    "access-control-expose-headers", 
+    "x-402-payment", 
+    "x-402-session", 
+    "x-payment",
+    "x-402-token",
+    "x-402-signature",
+    "x-402-nonce",
+    "x-402-timestamp",
+    "x-402-address",
+    "x-402-chain-id",
+    "x-402-network",
+    "x-402-amount",
+    "x-402-currency",
+    "x-402-facilitator",
+    "x-402-version"
+  ],
 }));
 
 // Basic logging middleware
@@ -53,6 +76,26 @@ app.use("*", async (c, next) => {
   console.log(`${method} ${url} - ${c.res.status} (${duration}ms)`);
 });
 
+// Helper function to get user ID from JWT token
+async function getUserIdFromToken(c: any): Promise<string | null> {
+  const authHeader = c.req.header('Authorization');
+  if (!authHeader || !authHeader.startsWith('Bearer ')) {
+    return null;
+  }
+  
+  const token = authHeader.substring(7);
+  try {
+    const { data: { user }, error } = await supabase.auth.getUser(token);
+    if (error || !user) {
+      return null;
+    }
+    return user.id;
+  } catch (error) {
+    console.error('Error verifying token:', error);
+    return null;
+  }
+}
+
 // Simple in-memory storage for sessions (use Redis/DB in production)
 interface Session {
   id: string;
@@ -63,6 +106,40 @@ interface Session {
 }
 
 const sessions = new Map<string, Session>();
+
+// Apply CORS to payment endpoints BEFORE x402 middleware
+app.use("/api/pay/*", async (c, next) => {
+  const origin = c.req.header('Origin');
+  const allowedOrigins = ["http://localhost:5173", "http://localhost:3000", "http://localhost:5174"];
+  
+  // Debug: Log all request headers
+  console.log('🔍 Payment endpoint request headers:', Object.fromEntries(c.req.raw.headers.entries()));
+  
+  // Set CORS headers
+  if (origin && allowedOrigins.includes(origin)) {
+    c.header('Access-Control-Allow-Origin', origin);
+  }
+  c.header('Access-Control-Allow-Credentials', 'true');
+  c.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+  c.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With, access-control-expose-headers, x-402-payment, x-402-session, x-payment, x-402-token, x-402-signature, x-402-nonce, x-402-timestamp, x-402-address, x-402-chain-id, x-402-network, x-402-amount, x-402-currency, x-402-facilitator, x-402-version');
+  c.header('Access-Control-Expose-Headers', 'X-PAYMENT-RESPONSE');
+  
+  if (c.req.method === 'OPTIONS') {
+    console.log('✅ Handling OPTIONS preflight request');
+    return c.text('', 200);
+  }
+  
+  await next();
+  
+  // Ensure CORS headers are preserved after x402 middleware
+  if (origin && allowedOrigins.includes(origin)) {
+    c.header('Access-Control-Allow-Origin', origin);
+  }
+  c.header('Access-Control-Allow-Credentials', 'true');
+  c.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+  c.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With, access-control-expose-headers, x-402-payment, x-402-session, x-payment, x-402-token, x-402-signature, x-402-nonce, x-402-timestamp, x-402-address, x-402-chain-id, x-402-network, x-402-amount, x-402-currency, x-402-facilitator, x-402-version');
+  c.header('Access-Control-Expose-Headers', 'X-PAYMENT-RESPONSE');
+});
 
 // Configure x402 payment middleware with two payment options
 app.use(
@@ -85,6 +162,50 @@ app.use(
     },
   ),
 );
+
+// Apply CORS to all other routes
+app.use("/*", cors({
+  origin: ["http://localhost:5173", "http://localhost:3000", "http://localhost:5174"],
+  credentials: true,
+  allowMethods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+  allowHeaders: [
+    "Content-Type", 
+    "Authorization", 
+    "X-Requested-With", 
+    "access-control-expose-headers", 
+    "x-402-payment", 
+    "x-402-session", 
+    "x-payment",
+    "x-402-token",
+    "x-402-signature",
+    "x-402-nonce",
+    "x-402-timestamp",
+    "x-402-address",
+    "x-402-chain-id",
+    "x-402-network",
+    "x-402-amount",
+    "x-402-currency",
+    "x-402-facilitator",
+    "x-402-version"
+  ],
+}));
+
+// Add a global response interceptor to ensure CORS headers are always present
+app.use("/*", async (c, next) => {
+  await next();
+  
+  // Ensure CORS headers are present on all responses
+  const origin = c.req.header('Origin');
+  const allowedOrigins = ["http://localhost:5173", "http://localhost:3000", "http://localhost:5174"];
+  
+  if (origin && allowedOrigins.includes(origin)) {
+    c.header('Access-Control-Allow-Origin', origin);
+  }
+  c.header('Access-Control-Allow-Credentials', 'true');
+  c.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+  c.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With, access-control-expose-headers, x-402-payment, x-402-session, x-payment, x-402-token, x-402-signature, x-402-nonce, x-402-timestamp, x-402-address, x-402-chain-id, x-402-network, x-402-amount, x-402-currency, x-402-facilitator, x-402-version');
+  c.header('Access-Control-Expose-Headers', 'X-PAYMENT-RESPONSE');
+});
 
 // Free endpoint - health check
 app.get("/api/health", (c) => {
@@ -251,9 +372,19 @@ interface Product {
 // GET all products
 app.get("/api/products", async (c) => {
   try {
-    const { data: products, error } = await supabase
+    // Get user ID from JWT token
+    const userId = await getUserIdFromToken(c);
+    if (!userId) {
+      return c.json({ 
+        success: false, 
+        error: "Authentication required" 
+      }, 401);
+    }
+
+    const { data: products, error } = await supabaseAdmin
       .from('products')
       .select('*')
+      .eq('owner_id', userId)
       .order('created_at', { ascending: false });
 
     if (error) {
@@ -280,6 +411,15 @@ app.get("/api/products", async (c) => {
 // POST to add a product
 app.post("/api/product", async (c) => {
   try {
+    // Get user ID from JWT token
+    const userId = await getUserIdFromToken(c);
+    if (!userId) {
+      return c.json({ 
+        success: false, 
+        error: "Authentication required" 
+      }, 401);
+    }
+
     const body = await c.req.json();
     const { name, pricing } = body;
 
@@ -292,13 +432,14 @@ app.post("/api/product", async (c) => {
 
     const now = new Date().toISOString();
     const newProduct = {
+      owner_id: userId,
       name,
       pricing,
       created_at: now,
       updated_at: now,
     };
 
-    const { data, error } = await supabase
+    const { data, error } = await supabaseAdmin
       .from('products')
       .insert([newProduct])
       .select()
@@ -338,19 +479,35 @@ interface PaymentLink {
   link_name: string;
   payment_link: string; // Unique hash generated from product_id and id
   product_id: string;
-  product_name: string;
+  product_name: string; // Flattened from products.name
   pricing: number;
   expiry_date: string;
   created_at: string;
   updated_at: string;
+  products: {
+    name: string;
+  };
 }
 
 // GET all payment links
 app.get("/api/payment-links", async (c) => {
   try {
-    const { data: paymentLinks, error } = await supabase
+    // Get user ID from JWT token
+    const userId = await getUserIdFromToken(c);
+    if (!userId) {
+      return c.json({ 
+        success: false, 
+        error: "Authentication required" 
+      }, 401);
+    }
+
+    const { data: paymentLinks, error } = await supabaseAdmin
       .from('payment_links')
-      .select('*')
+      .select(`
+        *,
+        products!inner(name)
+      `)
+      .eq('owner_id', userId)
       .order('created_at', { ascending: false });
 
     if (error) {
@@ -361,9 +518,15 @@ app.get("/api/payment-links", async (c) => {
       }, 500);
     }
 
+    // Transform the response to flatten product name
+    const transformedPaymentLinks = (paymentLinks || []).map(link => ({
+      ...link,
+      product_name: link.products.name
+    }));
+
     return c.json({ 
       success: true,
-      payment_links: paymentLinks || [] 
+      payment_links: transformedPaymentLinks 
     });
   } catch (error) {
     console.error('Server error:', error);
@@ -377,6 +540,15 @@ app.get("/api/payment-links", async (c) => {
 // POST to add a payment link
 app.post("/api/payment-link", async (c) => {
   try {
+    // Get user ID from JWT token
+    const userId = await getUserIdFromToken(c);
+    if (!userId) {
+      return c.json({ 
+        success: false, 
+        error: "Authentication required" 
+      }, 401);
+    }
+
     const body = await c.req.json();
     const { link_name, product_name, expiry_date } = body;
 
@@ -404,11 +576,12 @@ app.post("/api/payment-link", async (c) => {
       }, 400);
     }
 
-    // First, get the product details by name
-    const { data: product, error: productError } = await supabase
+    // First, get the product details by name and owner
+    const { data: product, error: productError } = await supabaseAdmin
       .from('products')
       .select('id, name, pricing')
       .eq('name', product_name)
+      .eq('owner_id', userId)
       .single();
 
     if (productError || !product) {
@@ -427,17 +600,17 @@ app.post("/api/payment-link", async (c) => {
     
     // Insert the payment link with temporary hash
     const initialPaymentLink = {
+      owner_id: userId,
       link_name,
       payment_link: tempPaymentLinkHash,
       product_id: product.id,
-      product_name: product.name,
       pricing: product.pricing,
       expiry_date: expiryDate.toISOString(),
       created_at: now,
       updated_at: now,
     };
 
-    const { data: insertedLink, error: insertError } = await supabase
+    const { data: insertedLink, error: insertError } = await supabaseAdmin
       .from('payment_links')
       .insert([initialPaymentLink])
       .select()
@@ -491,7 +664,7 @@ app.get("/api/payment-link/:paymentLink", async (c) => {
   try {
     const paymentLink = c.req.param("paymentLink");
     
-    const { data: paymentLinkData, error } = await supabase
+    const { data: paymentLinkData, error } = await supabaseAdmin
       .from('payment_links')
       .select('*')
       .eq('payment_link', paymentLink)

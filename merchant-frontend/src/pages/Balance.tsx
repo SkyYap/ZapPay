@@ -16,9 +16,10 @@ import { useState } from 'react';
 
 export function Balance() {
   const [showBalances, setShowBalances] = useState(true);
+  const usdcBalances = mockBalances.filter((balance) => balance.currency === 'USDC' && !!balance.chain);
   
-  const totalUSDValue = mockBalances.reduce((sum, balance) => sum + balance.usdValue, 0);
-  const totalChange24h = mockBalances.reduce((sum, balance) => 
+  const totalUSDValue = usdcBalances.reduce((sum, balance) => sum + balance.usdValue, 0);
+  const totalChange24h = usdcBalances.reduce((sum, balance) => 
     sum + (balance.usdValue * balance.change24h / 100), 0
   );
   const totalChangePercent = (totalChange24h / totalUSDValue) * 100;
@@ -105,16 +106,23 @@ export function Balance() {
 
       {/* Individual Balances */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {mockBalances.map((balance) => (
-          <Card key={balance.currency} className="border-amber-100 bg-gradient-to-br from-white to-amber-50/30 hover:shadow-md transition-shadow">
+        {usdcBalances.map((balance) => (
+          <Card key={`${balance.currency}-${balance.chain ?? 'main'}`} className="border-amber-100 bg-gradient-to-br from-white to-amber-50/30 hover:shadow-md transition-shadow">
             <CardHeader className="pb-2">
               <div className="flex items-center justify-between">
                 <CardTitle className="text-lg font-semibold">
                   {balance.currency}
                 </CardTitle>
-                <Badge variant="outline" className="text-xs">
-                  {balance.symbol}
-                </Badge>
+                <div className="flex items-center space-x-2">
+                  {balance.chain && (
+                    <Badge variant="secondary" className="text-xs capitalize">
+                      {balance.chain}
+                    </Badge>
+                  )}
+                  <Badge variant="outline" className="text-xs">
+                    {balance.symbol}
+                  </Badge>
+                </div>
               </div>
             </CardHeader>
             <CardContent>

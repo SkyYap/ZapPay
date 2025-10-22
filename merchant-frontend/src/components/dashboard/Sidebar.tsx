@@ -1,5 +1,6 @@
 import { useState } from 'react';
-import { NavLink, useLocation } from 'react-router-dom';
+import { NavLink, useLocation, useNavigate } from 'react-router-dom';
+import { useAuth } from '@/contexts/AuthContext';
 import { cn } from '@/lib/utils';
 import {
   Home,
@@ -9,6 +10,7 @@ import {
   Package,
   Shield,
   Link,
+  Puzzle,
   BarChart3,
   Monitor,
   Receipt,
@@ -19,7 +21,6 @@ import {
   Building2,
   Users2,
   Info,
-  Target,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -50,7 +51,7 @@ const navigation: NavigationItem[] = [
   { name: 'Customers', href: '/customers', icon: Users, demo: true },
   { name: 'Products', href: '/products', icon: Package },
   { name: 'Payment Links', href: '/payment-links', icon: Link },
-  { name: 'Strategy', href: '/strategy', icon: Target },
+  { name: 'Plugins', href: '/plugins', icon: Puzzle },
   { name: 'Radar', href: '/radar', icon: Shield, comingSoon: true },
   { name: 'Analytics', href: '/reporting', icon: BarChart3, comingSoon: true },
   { name: 'Terminal', href: '/terminal', icon: Monitor, comingSoon: true },
@@ -64,6 +65,8 @@ interface SidebarProps {
 export function Sidebar({ className }: SidebarProps) {
   const location = useLocation();
   const [isCollapsed] = useState(false);
+  const navigate = useNavigate();
+  const { signOut } = useAuth();
 
   return (
     <div className={cn(
@@ -272,7 +275,7 @@ export function Sidebar({ className }: SidebarProps) {
               </div>
             </DropdownMenuItem>
             
-            <DropdownMenuItem>
+            <DropdownMenuItem onClick={async () => { await signOut(); navigate('/auth'); }}>
               <LogOut className="mr-2 h-4 w-4" />
               <span>Sign out</span>
             </DropdownMenuItem>

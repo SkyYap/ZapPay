@@ -96,32 +96,44 @@ export const mockTransactions: Transaction[] = [
 // Mock Balances
 export const mockBalances: Balance[] = [
   {
-    currency: 'BTC',
-    amount: 0.2847,
-    usdValue: 10245.67,
-    change24h: 2.34,
-    symbol: '₿'
-  },
-  {
-    currency: 'ETH',
-    amount: 4.7823,
-    usdValue: 7891.23,
-    change24h: -1.56,
-    symbol: 'Ξ'
+    currency: 'USDC',
+    amount: 1500.25,
+    usdValue: 1500.25,
+    change24h: 0.00,
+    symbol: '$',
+    chain: 'base'
   },
   {
     currency: 'USDC',
-    amount: 5234.78,
-    usdValue: 5234.78,
-    change24h: 0.01,
-    symbol: '$'
+    amount: 800.00,
+    usdValue: 800.00,
+    change24h: 0.00,
+    symbol: '$',
+    chain: 'scroll'
   },
   {
-    currency: 'USDT',
-    amount: 2100.00,
-    usdValue: 2100.00,
-    change24h: -0.02,
-    symbol: '$'
+    currency: 'USDC',
+    amount: 1200.50,
+    usdValue: 1200.50,
+    change24h: 0.00,
+    symbol: '$',
+    chain: 'sei'
+  },
+  {
+    currency: 'USDC',
+    amount: 900.75,
+    usdValue: 900.75,
+    change24h: 0.00,
+    symbol: '$',
+    chain: 'scroll'
+  },
+  {
+    currency: 'USDC',
+    amount: 650.00,
+    usdValue: 650.00,
+    change24h: 0.00,
+    symbol: '$',
+    chain: 'scrollTestnet'
   }
 ];
 

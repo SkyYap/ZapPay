@@ -29,6 +29,7 @@ export interface Balance {
   usdValue: number;
   change24h: number;
   symbol: string;
+  chain?: 'base' | 'baseSepolia' | 'sei' | 'scroll' | 'scrollTestnet' | string;
 }
 
 export interface Customer {

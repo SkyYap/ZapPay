@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -7,22 +7,13 @@ import {
   CreditCard, 
   Shield, 
   CheckCircle,
-  ChevronDown,
   AlertCircle
 } from 'lucide-react';
-import { createWalletClient, custom, type WalletClient } from 'viem';
-import { baseSepolia } from 'viem/chains';
-import type { Hex } from 'viem';
 import axios from "axios";
 import type { AxiosInstance } from "axios";
 import { withPaymentInterceptor } from "x402-axios";
+import { useWallet } from '@/contexts/WalletContext';
 
-// Extend Window interface to include ethereum
-declare global {
-  interface Window {
-    ethereum?: any;
-  }
-}
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:3001";
 
@@ -38,11 +29,17 @@ const baseApiClient = axios.create({
 let apiClient: AxiosInstance = baseApiClient;
 
 // Update the API client with a wallet
-function updateApiClient(walletClient: WalletClient | null) {
+function updateApiClient(walletClient: any) {
   if (walletClient && walletClient.account) {
-    // Create axios instance with x402 payment interceptor
-    apiClient = withPaymentInterceptor(baseApiClient, walletClient as any);
-    console.log("💳 API client updated with wallet:", walletClient.account.address);
+    try {
+      // Create axios instance with x402 payment interceptor
+      apiClient = withPaymentInterceptor(baseApiClient, walletClient);
+      console.log("💳 API client updated with wallet:", walletClient.account.address);
+    } catch (error) {
+      console.error("❌ Failed to create x402 payment interceptor:", error);
+      // Fallback to base client if x402 interceptor fails
+      apiClient = baseApiClient;
+    }
   } else {
     // No wallet connected - reset to base client
     apiClient = baseApiClient;
@@ -102,14 +99,18 @@ export function ZapPayUI() {
   const { paymentLink } = useParams<{ paymentLink: string }>();
   const navigate = useNavigate();
   
-  const [isWalletConnected, setIsWalletConnected] = useState(false);
-  const [address, setAddress] = useState<Hex | null>(null);
-  const [walletClient, setWalletClient] = useState<WalletClient | null>(null);
-  const [error, setError] = useState<string | null>(null);
-  const [isConnecting, setIsConnecting] = useState(false);
+  // Use wallet context
+  const { 
+    isConnected: isWalletConnected, 
+    address, 
+    walletClient, 
+    error: walletError, 
+    isConnecting, 
+    connectWallet, 
+    disconnectWallet 
+  } = useWallet();
+  
   const [paymentStatus, setPaymentStatus] = useState<'pending' | 'processing' | 'completed'>('pending');
-  const [selectedCrypto, setSelectedCrypto] = useState('USDC');
-  const [showCryptoDropdown, setShowCryptoDropdown] = useState(false);
   const [paymentResult, setPaymentResult] = useState<any>(null);
   
   // Payment link data
@@ -117,17 +118,9 @@ export function ZapPayUI() {
   const [isLoadingPaymentLink, setIsLoadingPaymentLink] = useState(true);
   const [paymentLinkError, setPaymentLinkError] = useState<string | null>(null);
 
-  const cryptoOptions = ['ETH', 'BTC', 'USDT', 'USDC'];
-  
-  const getCryptoAmount = (cryptoType: string, usdAmount: number) => {
-    // Approximate rates for USD amount (as of current market)
-    const rates = {
-      'ETH': usdAmount * 0.0004, // ~$1.00 worth of ETH
-      'BTC': usdAmount * 0.000015, // ~$1.00 worth of BTC
-      'USDT': usdAmount, // 1:1 with USD
-      'USDC': usdAmount // 1:1 with USD
-    };
-    return rates[cryptoType as keyof typeof rates] || (usdAmount * 0.0004);
+  // USDC only - 1:1 with USD
+  const getCryptoAmount = (usdAmount: number) => {
+    return usdAmount; // USDC is 1:1 with USD
   };
 
   // Fetch payment link data on component mount
@@ -163,126 +156,23 @@ export function ZapPayUI() {
     updateApiClient(walletClient);
   }, [walletClient]);
 
-  // Check if wallet is already connected on mount
-  useEffect(() => {
-    checkConnection();
-  }, []);
-
-  const checkConnection = async () => {
-    if (typeof window.ethereum !== 'undefined') {
-      try {
-        const accounts = await window.ethereum.request({ 
-          method: 'eth_accounts' 
-        }) as string[];
-        
-        if (accounts.length > 0) {
-          const client = createWalletClient({
-            account: accounts[0] as Hex,
-            chain: baseSepolia,
-            transport: custom(window.ethereum)
-          });
-          
-          setWalletClient(client);
-          setAddress(accounts[0] as Hex);
-          setIsWalletConnected(true);
-        }
-      } catch (err) {
-        console.error('Failed to check wallet connection:', err);
-      }
-    }
-  };
-
-  const handleConnectWallet = useCallback(async () => {
-    setError(null);
-    setIsConnecting(true);
-
-    try {
-      if (typeof window.ethereum === 'undefined') {
-        throw new Error('Please install MetaMask or another Ethereum wallet');
-      }
-
-      // Request account access
-      const accounts = await window.ethereum.request({ 
-        method: 'eth_requestAccounts' 
-      }) as string[];
-      
-      if (accounts.length === 0) {
-        throw new Error('No accounts found');
-      }
-
-      // Check if on correct network (Base Sepolia)
-      const chainId = await window.ethereum.request({ 
-        method: 'eth_chainId' 
-      }) as string;
-      
-      const baseSepoliaChainIdHex = '0x14a34'; // 84532 in hex
-      
-      if (chainId !== baseSepoliaChainIdHex) {
-        try {
-          await window.ethereum.request({
-            method: 'wallet_switchEthereumChain',
-            params: [{ chainId: baseSepoliaChainIdHex }],
-          });
-        } catch (switchError: any) {
-          // This error code indicates that the chain has not been added to browser wallet
-          if (switchError.code === 4902) {
-            await window.ethereum.request({
-              method: 'wallet_addEthereumChain',
-              params: [{
-                chainId: baseSepoliaChainIdHex,
-                chainName: 'Base Sepolia',
-                nativeCurrency: {
-                  name: 'Ethereum',
-                  symbol: 'ETH',
-                  decimals: 18,
-                },
-                rpcUrls: ['https://sepolia.base.org'],
-                blockExplorerUrls: ['https://sepolia.basescan.org'],
-              }],
-            });
-          } else {
-            throw switchError;
-          }
-        }
-      }
-
-      // Create viem wallet client
-      const client = createWalletClient({
-        account: accounts[0] as Hex,
-        chain: baseSepolia,
-        transport: custom(window.ethereum)
-      });
-
-      setWalletClient(client);
-      setAddress(accounts[0] as Hex);
-      setIsWalletConnected(true);
-    } catch (err: any) {
-      setError(err.message || 'Failed to connect wallet');
-      console.error('Wallet connection error:', err);
-    } finally {
-      setIsConnecting(false);
-    }
-  }, []);
-
-  const handleDisconnectWallet = useCallback(() => {
-    setWalletClient(null);
-    setAddress(null);
-    setIsWalletConnected(false);
-    setError(null);
-  }, []);
-
   const handlePayWithCrypto = async () => {
     if (!isWalletConnected) {
-      setError('Please connect your wallet first');
       return;
     }
 
     setPaymentStatus('processing');
-    setError(null);
     
     try {
+      console.log("🚀 Starting payment process...");
+      console.log("💳 Wallet connected:", address);
+      console.log("🔗 Chain:", walletClient?.chain?.name);
+      console.log("🌐 Network ID:", walletClient?.chain?.id);
+      
       // Purchase 24-hour session (equivalent to the $1.00 payment)
       const session = await api.purchase24HourSession();
+      
+      console.log("✅ Payment successful:", session);
       
       setPaymentResult({
         type: 'success',
@@ -292,8 +182,15 @@ export function ZapPayUI() {
       
       setPaymentStatus('completed');
     } catch (error: any) {
+      console.error("❌ Payment failed:", error);
+      console.error("❌ Error details:", {
+        message: error.message,
+        response: error.response?.data,
+        status: error.response?.status,
+        headers: error.response?.headers
+      });
+      
       setPaymentStatus('pending');
-      setError(error.message || 'Failed to process payment');
       setPaymentResult({
         type: 'error',
         message: error.message || 'Failed to process payment',
@@ -301,39 +198,6 @@ export function ZapPayUI() {
     }
   };
 
-  // Listen for account changes
-  useEffect(() => {
-    if (typeof window.ethereum !== 'undefined') {
-      const handleAccountsChanged = async (accounts: string[]) => {
-        if (accounts.length === 0) {
-          handleDisconnectWallet();
-        } else if (accounts[0] !== address) {
-          // Re-connect with new account
-          const client = createWalletClient({
-            account: accounts[0] as Hex,
-            chain: baseSepolia,
-            transport: custom(window.ethereum)
-          });
-          
-          setWalletClient(client);
-          setAddress(accounts[0] as Hex);
-          setIsWalletConnected(true);
-        }
-      };
-
-      const handleChainChanged = () => {
-        window.location.reload();
-      };
-
-      window.ethereum.on('accountsChanged', handleAccountsChanged);
-      window.ethereum.on('chainChanged', handleChainChanged);
-
-      return () => {
-        window.ethereum.removeListener('accountsChanged', handleAccountsChanged);
-        window.ethereum.removeListener('chainChanged', handleChainChanged);
-      };
-    }
-  }, [address, handleDisconnectWallet]);
 
   const formatAddress = (addr: string) => {
     return `${addr.slice(0, 6)}...${addr.slice(-4)}`;
@@ -359,7 +223,7 @@ export function ZapPayUI() {
                     <span className="text-sm font-medium text-gray-900">{formatAddress(address)}</span>
                   </div>
                   <Button
-                    onClick={handleDisconnectWallet}
+                    onClick={disconnectWallet}
                     variant="outline"
                     size="sm"
                     className="border-gray-300 hover:bg-gray-50"
@@ -369,7 +233,7 @@ export function ZapPayUI() {
                 </div>
               ) : (
                 <Button
-                  onClick={handleConnectWallet}
+                  onClick={connectWallet}
                   disabled={isConnecting}
                   className="bg-gradient-to-r from-amber-600 to-orange-600 hover:from-amber-700 hover:to-orange-700 text-white"
                 >
@@ -377,9 +241,9 @@ export function ZapPayUI() {
                   {isConnecting ? 'Connecting...' : 'Connect Wallet'}
                 </Button>
               )}
-              {error && (
+              {walletError && (
                 <div className="absolute top-full left-0 mt-2 px-3 py-2 bg-red-100 border border-red-300 rounded-md text-red-700 text-sm z-10">
-                  {error}
+                  {walletError}
                 </div>
               )}
             </div>
@@ -463,7 +327,7 @@ export function ZapPayUI() {
                         ${paymentLinkData?.pricing?.toFixed(2) || '0.00'}
                       </div>
                       <div className="text-sm text-gray-500">
-                        ≈ {getCryptoAmount(selectedCrypto, paymentLinkData?.pricing || 0).toFixed(4)} {selectedCrypto}
+                        ≈ {getCryptoAmount(paymentLinkData?.pricing || 0).toFixed(2)} USDC
                       </div>
                     </div>
 
@@ -562,37 +426,11 @@ export function ZapPayUI() {
                   </div>
                   <div className="flex justify-between items-center">
                     <span className="text-gray-600">Crypto Type</span>
-                    <div className="relative">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        className="bg-white border border-gray-200 hover:bg-gray-50 min-w-[100px]"
-                        onClick={() => setShowCryptoDropdown(!showCryptoDropdown)}
-                      >
-                        {selectedCrypto}
-                        <ChevronDown className="h-3 w-3 ml-2" />
-                      </Button>
-                      {showCryptoDropdown && (
-                        <div className="absolute right-0 mt-1 w-full bg-white border border-gray-200 rounded-md shadow-lg z-10">
-                          {cryptoOptions.map((crypto) => (
-                            <button
-                              key={crypto}
-                              className="w-full px-3 py-2 text-left text-sm bg-white hover:bg-gray-50 first:rounded-t-md last:rounded-b-md"
-                              onClick={() => {
-                                setSelectedCrypto(crypto);
-                                setShowCryptoDropdown(false);
-                              }}
-                            >
-                              {crypto}
-                            </button>
-                          ))}
-                        </div>
-                      )}
-                    </div>
+                    <span className="font-medium">USDC</span>
                   </div>
                   <div className="flex justify-between items-center">
                     <span className="text-gray-600">Crypto Amount</span>
-                    <span className="font-medium">{getCryptoAmount(selectedCrypto, paymentLinkData?.pricing || 0).toFixed(4)} {selectedCrypto}</span>
+                    <span className="font-medium">{getCryptoAmount(paymentLinkData?.pricing || 0).toFixed(2)} USDC</span>
                   </div>
                   <div className="flex justify-between items-center">
                     <span className="text-gray-600 text-left">Network Fee (Scroll)</span>

@@ -12,7 +12,10 @@ interface HeaderProps {
   onMenuClick?: () => void;
 }
 
+import { useNavigate } from 'react-router-dom';
+
 export function Header({ onMenuClick }: HeaderProps) {
+  const navigate = useNavigate();
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="flex h-14 items-center justify-between px-4">
@@ -92,12 +95,13 @@ export function Header({ onMenuClick }: HeaderProps) {
                   variant="ghost" 
                   size="sm" 
                   className="bg-transparent hover:bg-transparent focus:bg-transparent border-none shadow-none p-2"
+                  onClick={() => navigate('/api-key')}
                 >
                   <Settings className="h-4 w-4 text-muted-foreground" />
                 </Button>
               </TooltipTrigger>
               <TooltipContent>
-                <p>Settings</p>
+                <p>API Key</p>
               </TooltipContent>
             </Tooltip>
 

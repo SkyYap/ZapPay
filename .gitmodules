@@ -1,6 +1,1 @@
-[submodule "eip-3009"]
-	path = eip-3009
-	url = https://github.com/CoinbaseStablecoin/eip-3009.git
-[submodule "x402-rs"]
-	path = x402-rs
-	url = https://github.com/x402-rs/x402-rs.git
+

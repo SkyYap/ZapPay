@@ -39,6 +39,7 @@
     "@radix-ui/react-toggle": "^1.1.0",
     "@radix-ui/react-toggle-group": "^1.1.0",
     "@radix-ui/react-tooltip": "^1.1.2",
+    "@supabase/supabase-js": "^2.57.4",
     "axios": "^1.6.0",
     "class-variance-authority": "^0.7.0",
     "clsx": "^2.1.1",
@@ -60,7 +61,7 @@
     "tailwindcss-animate": "^1.0.7",
     "vaul": "^1.0.0",
     "viem": "^2.0.0",
-    "x402-axios": "^0.4.0",
+    "x402-axios": "file:../x402-packages/packages/x402-axios",
     "zod": "^3.23.8"
   },
   "devDependencies": {
