@@ -429,7 +429,7 @@ export function ZapPayUI() {
                     <span className="font-medium">USDC</span>
                   </div>
                   <div className="flex justify-between items-center">
-                    <span className="text-gray-600">Crypto Amount</span>
+                    <span className="text-gray-600">Amount</span>
                     <span className="font-medium">{getCryptoAmount(paymentLinkData?.pricing || 0).toFixed(2)} USDC</span>
                   </div>
                   <div className="flex justify-between items-center">

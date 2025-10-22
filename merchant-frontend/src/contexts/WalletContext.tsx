@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState, useCallback, useEffect } from 'react';
 import { createWalletClient, custom, type WalletClient } from 'viem';
-import { scroll } from 'viem/chains';
+import { baseSepolia } from 'viem/chains';
 import type { Hex } from 'viem';
 
 // Extend Window interface to include ethereum
@@ -44,10 +44,10 @@ export function WalletProvider({ children }: { children: React.ReactNode }) {
         if (accounts.length > 0) {
           const client = createWalletClient({
             account: accounts[0] as Hex,
-            chain: scroll,
+            chain: baseSepolia,
             transport: custom(window.ethereum)
           });
-          
+
           setWalletClient(client);
           setAddress(accounts[0] as Hex);
           setIsConnected(true);
@@ -76,18 +76,18 @@ export function WalletProvider({ children }: { children: React.ReactNode }) {
         throw new Error('No accounts found');
       }
 
-      // Check if on correct network (Scroll Mainnet)
-      const chainId = await window.ethereum.request({ 
-        method: 'eth_chainId' 
+      // Check if on correct network (Base Sepolia)
+      const chainId = await window.ethereum.request({
+        method: 'eth_chainId'
       }) as string;
-      
-      const scrollChainIdHex = '0x82750'; // 534352 in hex
-      
-      if (chainId !== scrollChainIdHex) {
+
+      const baseSepoliaChainIdHex = '0x14a34'; // 84532 in hex
+
+      if (chainId !== baseSepoliaChainIdHex) {
         try {
           await window.ethereum.request({
             method: 'wallet_switchEthereumChain',
-            params: [{ chainId: scrollChainIdHex }],
+            params: [{ chainId: baseSepoliaChainIdHex }],
           });
         } catch (switchError: any) {
           // This error code indicates that the chain has not been added to browser wallet
@@ -95,15 +95,15 @@ export function WalletProvider({ children }: { children: React.ReactNode }) {
             await window.ethereum.request({
               method: 'wallet_addEthereumChain',
               params: [{
-                chainId: scrollChainIdHex,
-                chainName: 'Scroll Mainnet',
+                chainId: baseSepoliaChainIdHex,
+                chainName: 'Base Sepolia',
                 nativeCurrency: {
                   name: 'Ethereum',
                   symbol: 'ETH',
                   decimals: 18,
                 },
-                rpcUrls: ['https://rpc.scroll.io'],
-                blockExplorerUrls: ['https://scrollscan.com'],
+                rpcUrls: ['https://sepolia.base.org'],
+                blockExplorerUrls: ['https://sepolia.basescan.org'],
               }],
             });
           } else {
@@ -115,7 +115,7 @@ export function WalletProvider({ children }: { children: React.ReactNode }) {
       // Create viem wallet client
       const client = createWalletClient({
         account: accounts[0] as Hex,
-        chain: scroll,
+        chain: baseSepolia,
         transport: custom(window.ethereum)
       });
 
@@ -147,10 +147,10 @@ export function WalletProvider({ children }: { children: React.ReactNode }) {
           // Re-connect with new account
           const client = createWalletClient({
             account: accounts[0] as Hex,
-            chain: scroll,
+            chain: baseSepolia,
             transport: custom(window.ethereum)
           });
-          
+
           setWalletClient(client);
           setAddress(accounts[0] as Hex);
           setIsConnected(true);
