@@ -932,6 +932,83 @@ app.get("/api/payment-link/:paymentLink", async (c) => {
   }
 });
 
+// GET all transactions with optional filters
+app.get("/api/transactions", async (c) => {
+  try {
+    // Get user ID from JWT token
+    const userId = await getUserIdFromToken(c);
+    if (!userId) {
+      return c.json({
+        success: false,
+        error: "Authentication required"
+      }, 401);
+    }
+
+    // Get query parameters for filtering and pagination
+    const status = c.req.query('status'); // 'completed', 'pending', 'failed', 'cancelled'
+    const limit = parseInt(c.req.query('limit') || '50');
+    const offset = parseInt(c.req.query('offset') || '0');
+
+    // Build query
+    let query = supabaseAdmin
+      .from('transactions')
+      .select('*', { count: 'exact' })
+      .eq('owner_id', userId)
+      .order('created_at', { ascending: false })
+      .range(offset, offset + limit - 1);
+
+    // Apply status filter if provided
+    if (status) {
+      query = query.eq('status', status);
+    }
+
+    const { data: transactions, error, count } = await query;
+
+    if (error) {
+      console.error('Supabase error:', error);
+      return c.json({
+        success: false,
+        error: "Failed to fetch transactions"
+      }, 500);
+    }
+
+    // Calculate summary statistics
+    const { data: allTransactions } = await supabaseAdmin
+      .from('transactions')
+      .select('status, amount')
+      .eq('owner_id', userId);
+
+    const stats = {
+      total: allTransactions?.length || 0,
+      completed: allTransactions?.filter(t => t.status === 'completed').length || 0,
+      pending: allTransactions?.filter(t => t.status === 'pending').length || 0,
+      failed: allTransactions?.filter(t => t.status === 'failed').length || 0,
+      cancelled: allTransactions?.filter(t => t.status === 'cancelled').length || 0,
+      totalAmount: allTransactions
+        ?.filter(t => t.status === 'completed')
+        .reduce((sum, t) => sum + (t.amount || 0), 0) || 0,
+    };
+
+    return c.json({
+      success: true,
+      transactions: transactions || [],
+      count: count || 0,
+      stats,
+      pagination: {
+        limit,
+        offset,
+        hasMore: (count || 0) > offset + limit
+      }
+    });
+  } catch (error) {
+    console.error('Server error:', error);
+    return c.json({
+      success: false,
+      error: "Internal server error"
+    }, 500);
+  }
+});
+
 console.log(`
 🚀 x402 Payment Template Server
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━

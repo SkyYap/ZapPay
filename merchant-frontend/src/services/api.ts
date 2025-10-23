@@ -106,6 +106,26 @@ export const api = {
     console.log("✅ Payment link created:", response.data);
     return response.data;
   },
+
+  // Transaction management
+  getTransactions: async (params?: { status?: string; limit?: number; offset?: number }) => {
+    console.log("💳 Fetching transactions...", params);
+    const queryParams = new URLSearchParams();
+    if (params?.status) queryParams.append('status', params.status);
+    if (params?.limit) queryParams.append('limit', params.limit.toString());
+    if (params?.offset) queryParams.append('offset', params.offset.toString());
+
+    const response = await apiClient.get(`/api/transactions?${queryParams.toString()}`);
+    console.log("✅ Transactions fetched:", response.data);
+    return response.data;
+  },
+
+  getWalletRiskAnalysis: async (address: string) => {
+    console.log("🔍 Fetching wallet risk analysis...", address);
+    const response = await apiClient.get(`/api/risk/wallet/${address}`);
+    console.log("✅ Risk analysis fetched:", response.data);
+    return response.data;
+  },
 };
 
 // Types for API responses
@@ -162,5 +182,44 @@ export interface CreatePaymentLinkResponse {
   success: boolean;
   message?: string;
   payment_link?: PaymentLink;
+  error?: string;
+}
+
+export interface Transaction {
+  id: string;
+  owner_id: string;
+  payment_link_id?: string;
+  type: 'payment' | 'withdrawal' | 'deposit';
+  status: 'pending' | 'completed' | 'failed' | 'cancelled';
+  amount: number;
+  currency: string;
+  crypto_amount?: number;
+  crypto_currency?: string;
+  customer_id?: string;
+  tx_hash?: string;
+  network_fee?: number;
+  created_at: string;
+  updated_at?: string;
+}
+
+export interface TransactionStats {
+  total: number;
+  completed: number;
+  pending: number;
+  failed: number;
+  cancelled: number;
+  totalAmount: number;
+}
+
+export interface GetTransactionsResponse {
+  success: boolean;
+  transactions: Transaction[];
+  count: number;
+  stats: TransactionStats;
+  pagination: {
+    limit: number;
+    offset: number;
+    hasMore: boolean;
+  };
   error?: string;
 } 
