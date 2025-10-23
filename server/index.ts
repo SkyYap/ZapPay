@@ -6,6 +6,7 @@ import { paymentMiddleware, Network, Resource } from "x402-hono";
 import { v4 as uuidv4 } from "uuid";
 import { createClient } from "@supabase/supabase-js";
 import { createHash } from "crypto";
+import { walletRiskMiddleware } from "./middleware/walletRiskMiddleware";
 
 config();
 
@@ -140,6 +141,10 @@ app.use("/api/pay/*", async (c, next) => {
   c.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With, access-control-expose-headers, x-402-payment, x-402-session, x-payment, x-402-token, x-402-signature, x-402-nonce, x-402-timestamp, x-402-address, x-402-chain-id, x-402-network, x-402-amount, x-402-currency, x-402-facilitator, x-402-version');
   c.header('Access-Control-Expose-Headers', 'X-PAYMENT-RESPONSE');
 });
+
+// Apply wallet risk middleware BEFORE payment processing
+// This blocks high-risk wallets before they can attempt to pay
+app.use("/api/pay/*", walletRiskMiddleware);
 
 // Configure x402 payment middleware with two payment options
 app.use(
@@ -651,7 +656,7 @@ app.post("/api/payment-link", async (c) => {
 app.get("/api/payment-link/:paymentLink", async (c) => {
   try {
     const paymentLink = c.req.param("paymentLink");
-    
+
     const { data: paymentLinkData, error } = await supabaseAdmin
       .from('payment_links')
       .select('*')
@@ -659,32 +664,45 @@ app.get("/api/payment-link/:paymentLink", async (c) => {
       .single();
 
     if (error || !paymentLinkData) {
-      return c.json({ 
-        success: false, 
-        error: "Payment link not found" 
+      return c.json({
+        success: false,
+        error: "Payment link not found"
       }, 404);
     }
 
     // Check if payment link has expired
     const now = new Date();
     const expiryDate = new Date(paymentLinkData.expiry_date);
-    
+
     if (now > expiryDate) {
-      return c.json({ 
-        success: false, 
-        error: "Payment link has expired" 
+      return c.json({
+        success: false,
+        error: "Payment link has expired"
       }, 410);
     }
 
+    // Fetch the product name from products table
+    const { data: product, error: productError } = await supabaseAdmin
+      .from('products')
+      .select('name')
+      .eq('id', paymentLinkData.product_id)
+      .single();
+
+    // Add product_name to the response
+    const responseData = {
+      ...paymentLinkData,
+      product_name: product?.name || paymentLinkData.link_name
+    };
+
     return c.json({
       success: true,
-      payment_link: paymentLinkData
+      payment_link: responseData
     });
   } catch (error) {
     console.error('Server error:', error);
-    return c.json({ 
-      success: false, 
-      error: "Internal server error" 
+    return c.json({
+      success: false,
+      error: "Internal server error"
     }, 500);
   }
 });

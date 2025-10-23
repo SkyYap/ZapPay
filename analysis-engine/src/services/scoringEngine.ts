@@ -11,6 +11,8 @@ import {
   generateAMLDescription,
   shouldAutoBlock
 } from './metasleuthProvider';
+import fs from 'fs';
+import path from 'path';
 
 // Risk scoring weights (adjusted for AML integration)
 const WEIGHTS = {
@@ -25,6 +27,30 @@ const WEIGHTS = {
 const riskCache = new Map<string, { analysis: RiskAnalysis; expiry: number }>();
 const CACHE_TTL = 24 * 60 * 60 * 1000; // 24 hours in milliseconds
 
+// Blacklist file path
+const BLACKLIST_FILE = path.join(__dirname, '../../data/blacklist.json');
+
+/**
+ * Check if wallet is in blacklist.json
+ */
+function isInBlacklist(address: string): boolean {
+  try {
+    if (!fs.existsSync(BLACKLIST_FILE)) {
+      return false;
+    }
+    const data = fs.readFileSync(BLACKLIST_FILE, 'utf-8');
+    const blacklist = JSON.parse(data);
+    const normalizedAddress = address.toLowerCase();
+
+    return blacklist.blacklistedWallets?.some(
+      (wallet: any) => wallet.address?.toLowerCase() === normalizedAddress
+    ) || false;
+  } catch (error: any) {
+    console.error('Error reading blacklist:', error.message);
+    return false;
+  }
+}
+
 /**
  * Main function to analyze a wallet and return risk score
  * @param walletAddress - The wallet address to analyze
@@ -32,6 +58,25 @@ const CACHE_TTL = 24 * 60 * 60 * 1000; // 24 hours in milliseconds
  */
 export async function analyzeWallet(walletAddress: string): Promise<RiskAnalysis> {
   const normalizedAddress = walletAddress.toLowerCase();
+
+  // Check blacklist first
+  if (isInBlacklist(normalizedAddress)) {
+    console.log(`🚫 Wallet is BLACKLISTED: ${normalizedAddress}`);
+
+    const blacklistAnalysis: RiskAnalysis = {
+      walletAddress: normalizedAddress,
+      riskScore: 100,
+      riskLevel: 'critical',
+      factors: {} as RiskFactors, // Empty factors, not needed for blacklisted
+      recommendations: [
+        '🚫 BLACKLISTED WALLET - BLOCK IMMEDIATELY',
+        'This wallet address is in blacklist.json',
+      ],
+      timestamp: new Date().toISOString()
+    };
+
+    return blacklistAnalysis;
+  }
 
   // Check cache first
   const cached = riskCache.get(normalizedAddress);
@@ -357,7 +402,8 @@ function getWalletAgeDescription(ageInDays: number): string {
   if (ageInDays < 30) return 'New wallet (< 1 month)';
   if (ageInDays < 90) return 'Relatively new (< 3 months)';
   if (ageInDays < 180) return 'Established wallet (< 6 months)';
-  return 'Mature wallet (> 6 months)';
+  if (ageInDays < 365) return 'Mature wallet (< 1 year)';
+  return 'Mature wallet (> 1 year)';
 }
 
 function getTransactionDescription(txCount: number): string {

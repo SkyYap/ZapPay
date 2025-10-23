@@ -79,6 +79,12 @@ const api = {
     return response.data;
   },
 
+  // Get wallet risk analysis
+  getWalletRiskAnalysis: async (walletAddress: string) => {
+    const response = await baseApiClient.get(`/api/risk/wallet/${walletAddress}`);
+    return response.data;
+  },
+
   // Paid endpoints
   purchase24HourSession: async () => {
     console.log("🔐 Premium Membership purchasing ...");
@@ -118,11 +124,6 @@ export function ZapPayUI() {
   const [isLoadingPaymentLink, setIsLoadingPaymentLink] = useState(true);
   const [paymentLinkError, setPaymentLinkError] = useState<string | null>(null);
 
-  // USDC only - 1:1 with USD
-  const getCryptoAmount = (usdAmount: number) => {
-    return usdAmount; // USDC is 1:1 with USD
-  };
-
   // Fetch payment link data on component mount
   useEffect(() => {
     if (paymentLink) {
@@ -132,13 +133,16 @@ export function ZapPayUI() {
 
   const fetchPaymentLinkData = async () => {
     if (!paymentLink) return;
-    
+
     setIsLoadingPaymentLink(true);
     setPaymentLinkError(null);
-    
+
     try {
       const response = await api.getPaymentLink(paymentLink);
-      
+
+      console.log("🔍 Payment Link Response:", response);
+      console.log("🔍 Payment Link Data:", response.payment_link);
+
       if (response.success) {
         setPaymentLinkData(response.payment_link);
       } else {
@@ -189,12 +193,52 @@ export function ZapPayUI() {
         status: error.response?.status,
         headers: error.response?.headers
       });
-      
+
       setPaymentStatus('pending');
-      setPaymentResult({
-        type: 'error',
-        message: error.message || 'Failed to process payment',
-      });
+
+      // If it's a 403 error, fetch wallet risk analysis
+      if (error.response?.status === 403 && address) {
+        try {
+          console.log("🔍 Fetching risk analysis for blocked wallet...");
+          const riskData = await api.getWalletRiskAnalysis(address);
+
+          if (riskData.success && riskData.data) {
+            const analysis = riskData.data;
+            const riskScore = analysis.riskScore || 0;
+            const riskLevel = analysis.riskLevel || 'unknown';
+            const recommendations = analysis.recommendations || [];
+
+            // Format the error message with risk details
+            let errorMessage = `PAYMENT BLOCKED\n\nRisk Score: ${riskScore}/100 (${riskLevel})\n`;
+
+            if (recommendations.length > 0) {
+              errorMessage += `\nReasons:\n${recommendations.map((r: string) => `• ${r}`).join('\n')}`;
+            }
+
+            setPaymentResult({
+              type: 'error',
+              message: errorMessage,
+              riskAnalysis: analysis,
+            });
+          } else {
+            setPaymentResult({
+              type: 'error',
+              message: 'PAYMENT BLOCKED - Wallet exceeds risk threshold',
+            });
+          }
+        } catch (riskError) {
+          console.error("Failed to fetch risk analysis:", riskError);
+          setPaymentResult({
+            type: 'error',
+            message: 'PAYMENT BLOCKED - High risk wallet detected',
+          });
+        }
+      } else {
+        setPaymentResult({
+          type: 'error',
+          message: error.message || 'Failed to process payment',
+        });
+      }
     }
   };
 
@@ -324,10 +368,7 @@ export function ZapPayUI() {
                     {/* Amount */}
                     <div className="space-y-2">
                       <div className="text-3xl font-bold text-gray-900">
-                        ${paymentLinkData?.pricing?.toFixed(2) || '0.00'}
-                      </div>
-                      <div className="text-sm text-gray-500">
-                        ≈ {getCryptoAmount(paymentLinkData?.pricing || 0).toFixed(2)} USDC
+                        ${paymentLinkData?.pricing?.toFixed(2) || '0.00'} USDC
                       </div>
                     </div>
 
@@ -379,21 +420,21 @@ export function ZapPayUI() {
                 </CardHeader>
                 <CardContent>
                   <div className={`p-4 rounded-lg ${
-                    paymentResult.type === 'success' 
-                      ? 'bg-green-50 border border-green-200' 
+                    paymentResult.type === 'success'
+                      ? 'bg-green-50 border border-green-200'
                       : 'bg-red-50 border border-red-200'
                   }`}>
-                    <div className="flex items-center space-x-2">
+                    <div className="flex items-start space-x-2">
                       {paymentResult.type === 'success' ? (
-                        <CheckCircle className="h-5 w-5 text-green-600" />
+                        <CheckCircle className="h-5 w-5 text-green-600 flex-shrink-0 mt-0.5" />
                       ) : (
-                        <div className="h-5 w-5 bg-red-600 rounded-full"></div>
+                        <AlertCircle className="h-5 w-5 text-red-600 flex-shrink-0 mt-0.5" />
                       )}
-                      <span className={`font-medium ${
+                      <div className={`font-medium whitespace-pre-line ${
                         paymentResult.type === 'success' ? 'text-green-800' : 'text-red-800'
                       }`}>
                         {paymentResult.message}
-                      </span>
+                      </div>
                     </div>
                     {paymentResult.session && (
                       <div className="mt-3 text-sm text-gray-600">
@@ -422,24 +463,16 @@ export function ZapPayUI() {
                   </div>
                   <div className="flex justify-between items-center">
                     <span className="text-gray-600">Amount</span>
-                    <span className="font-medium">${paymentLinkData?.pricing?.toFixed(2) || '0.00'} </span>
+                    <span className="font-medium">${paymentLinkData?.pricing?.toFixed(2) || '0.00'} USDC</span>
                   </div>
                   <div className="flex justify-between items-center">
-                    <span className="text-gray-600">Crypto Type</span>
-                    <span className="font-medium">USDC</span>
-                  </div>
-                  <div className="flex justify-between items-center">
-                    <span className="text-gray-600">Amount</span>
-                    <span className="font-medium">{getCryptoAmount(paymentLinkData?.pricing || 0).toFixed(2)} USDC</span>
-                  </div>
-                  <div className="flex justify-between items-center">
-                    <span className="text-gray-600 text-left">Network Fee (Scroll)</span>
+                    <span className="text-gray-600 text-left">Network Fee</span>
                     <span className="font-medium text-right">Free! Subsidy by ZapPay</span>
                   </div>
                   <div className="border-t pt-3">
                     <div className="flex justify-between items-center">
                       <span className="text-gray-900 font-semibold">Total</span>
-                      <span className="text-gray-900 font-semibold">${paymentLinkData?.pricing?.toFixed(2) || '0.00'} USD</span>
+                      <span className="text-gray-900 font-semibold">${paymentLinkData?.pricing?.toFixed(2) || '0.00'} USDC</span>
                     </div>
                   </div>
                 </div>

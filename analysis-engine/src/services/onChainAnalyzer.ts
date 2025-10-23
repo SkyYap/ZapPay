@@ -22,7 +22,24 @@ export async function getWalletDataFromBasescan(address: string): Promise<Wallet
     console.log(`🌐 Base URL: ${ETHERSCAN_BASE_URL}`);
     console.log(`⛓️  Chain ID: ${BASE_CHAIN_ID}`);
 
-    // Fetch transaction list
+    // Fetch first transaction (for wallet age)
+    const firstTxResponse = await axios.get<BasescanResponse>(ETHERSCAN_BASE_URL, {
+      params: {
+        chainid: BASE_CHAIN_ID,
+        module: 'account',
+        action: 'txlist',
+        address: address,
+        startblock: 0,
+        endblock: 99999999,
+        page: 1,
+        offset: 1, // Get only first transaction
+        sort: 'asc', // Ascending = oldest first
+        apikey: getApiKey()
+      },
+      timeout: 10000
+    });
+
+    // Fetch recent transactions (for analysis)
     const txListResponse = await axios.get<BasescanResponse>(ETHERSCAN_BASE_URL, {
       params: {
         chainid: BASE_CHAIN_ID,
@@ -33,7 +50,7 @@ export async function getWalletDataFromBasescan(address: string): Promise<Wallet
         endblock: 99999999,
         page: 1,
         offset: 100, // Get last 100 transactions
-        sort: 'desc',
+        sort: 'desc', // Descending = newest first
         apikey: apiKey
       },
       timeout: 10000
@@ -65,6 +82,11 @@ export async function getWalletDataFromBasescan(address: string): Promise<Wallet
       ? txListResponse.data.result
       : [];
 
+    // Parse first transaction
+    const firstTx: BasescanTransaction | undefined = Array.isArray(firstTxResponse.data.result) && firstTxResponse.data.result.length > 0
+      ? firstTxResponse.data.result[0]
+      : undefined;
+
     const balance = typeof balanceResponse.data.result === 'string'
       ? balanceResponse.data.result
       : '0';
@@ -79,7 +101,7 @@ export async function getWalletDataFromBasescan(address: string): Promise<Wallet
       transactions: sortedTransactions,
       transactionCount: sortedTransactions.length,
       balance,
-      firstTransaction: sortedTransactions[0] || undefined,
+      firstTransaction: firstTx || sortedTransactions[0] || undefined, // Use actual first tx
       lastTransaction: sortedTransactions[sortedTransactions.length - 1] || undefined
     };
 

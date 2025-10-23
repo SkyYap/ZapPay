@@ -10,13 +10,14 @@
   "dependencies": {
     "@hono/node-server": "^1.14.0",
     "@supabase/supabase-js": "^2.54.0",
-    "dotenv": "^16.5.0",
+    "axios": "^1.12.2",
+    "dotenv": "^16.6.1",
     "hono": "^4.6.17",
     "uuid": "^11.0.6",
     "x402-hono": "file:../x402-packages/packages/x402-hono"
   },
   "devDependencies": {
-    "@types/node": "^22.15.3",
+    "@types/node": "^22.18.12",
     "@types/uuid": "^10.0.0",
     "tsx": "^4.19.2",
     "typescript": "^5.8.3"
