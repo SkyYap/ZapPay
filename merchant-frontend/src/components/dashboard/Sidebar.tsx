@@ -47,7 +47,7 @@ import type { NavigationItem } from '@/types';
 const navigation: NavigationItem[] = [
   { name: 'Overview', href: '/', icon: Home },
   { name: 'Balance', href: '/balance', icon: Wallet, demo: true },
-  { name: 'Transactions', href: '/transactions', icon: CreditCard, demo: true },
+  { name: 'Transactions', href: '/transactions', icon: CreditCard, demo: false },
   { name: 'Customers', href: '/customers', icon: Users, demo: true },
   { name: 'Products', href: '/products', icon: Package },
   { name: 'Payment Links', href: '/payment-links', icon: Link },
