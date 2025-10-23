@@ -1,0 +1,9 @@
+{
+  "permissions": {
+    "allow": [
+      "WebFetch(domain:docs.etherscan.io)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}
