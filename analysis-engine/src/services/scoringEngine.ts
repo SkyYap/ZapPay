@@ -70,7 +70,7 @@ export async function analyzeWallet(walletAddress: string): Promise<RiskAnalysis
       factors: {} as RiskFactors, // Empty factors, not needed for blacklisted
       recommendations: [
         '🚫 BLACKLISTED WALLET - BLOCK IMMEDIATELY',
-        'This wallet address is in blacklist.json',
+        'This wallet address is in blacklist. Please contact support for assistance.',
       ],
       timestamp: new Date().toISOString()
     };

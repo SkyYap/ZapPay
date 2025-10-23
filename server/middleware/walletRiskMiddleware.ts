@@ -1,5 +1,6 @@
 import type { Context, Next } from 'hono';
 import { checkWalletRisk } from '../services/riskService';
+import { recordBlockedPayment, extractPaymentAmount, getSystemOwnerId, extractPaymentLinkFromContext, getPaymentLinkData } from '../services/transactionService';
 
 /**
  * Helper function to extract wallet address from x-payment header
@@ -60,6 +61,56 @@ export async function walletRiskMiddleware(c: Context, next: Next) {
     // If not allowed, block the request
     if (!riskCheck.allowed) {
       console.log(`🚫 Blocking wallet ${walletAddress}: ${riskCheck.blockReason}`);
+
+      // Record blocked transaction to database
+      try {
+        const xPayment = c.req.header('x-payment');
+        let amount = 0;
+        let currency = 'USD';
+
+        if (xPayment) {
+          const paymentAmount = extractPaymentAmount(xPayment);
+          amount = paymentAmount.amount || 0;
+          currency = paymentAmount.currency || 'USD';
+        }
+
+        // Try to extract payment_link from referrer
+        const paymentLinkHash = extractPaymentLinkFromContext(c);
+        let payment_link_id: string | undefined;
+        let owner_id: string | null = null;
+
+        if (paymentLinkHash) {
+          const linkData = await getPaymentLinkData(paymentLinkHash);
+          if (linkData) {
+            payment_link_id = linkData.id;
+            owner_id = linkData.owner_id;
+          }
+        }
+
+        // Fallback to system owner if no payment link found
+        if (!owner_id) {
+          owner_id = await getSystemOwnerId();
+        }
+
+        if (owner_id) {
+          await recordBlockedPayment({
+            owner_id,
+            payment_link_id,
+            amount,
+            currency,
+            crypto_amount: amount, // Set crypto_amount = amount
+            crypto_currency: 'USDC', // Always USDC
+            wallet_address: walletAddress,
+            block_reason: riskCheck.blockReason || 'High-risk wallet detected',
+            risk_score: riskCheck.riskAnalysis?.riskScore,
+          });
+        } else {
+          console.error('❌ Cannot record blocked transaction: No valid owner_id found');
+        }
+      } catch (recordError: any) {
+        console.error('❌ Failed to record blocked transaction:', recordError.message);
+        // Continue to return 403 even if recording fails
+      }
 
       return c.json(
         {

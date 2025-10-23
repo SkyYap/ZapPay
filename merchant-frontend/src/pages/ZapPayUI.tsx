@@ -86,9 +86,14 @@ const api = {
   },
 
   // Paid endpoints
-  purchase24HourSession: async () => {
+  purchase24HourSession: async (paymentLink?: string) => {
     console.log("🔐 Premium Membership purchasing ...");
-    const response = await apiClient.post("/api/pay/session");
+    const headers: any = {};
+    if (paymentLink) {
+      headers['X-Payment-Link'] = paymentLink;
+      console.log("📝 Sending payment_link in header:", paymentLink);
+    }
+    const response = await apiClient.post("/api/pay/session", {}, { headers });
     console.log("✅ Premium Membership purchased:", response.data);
     return response.data.session;
   },
@@ -174,7 +179,7 @@ export function ZapPayUI() {
       console.log("🌐 Network ID:", walletClient?.chain?.id);
       
       // Purchase 24-hour session (equivalent to the $1.00 payment)
-      const session = await api.purchase24HourSession();
+      const session = await api.purchase24HourSession(paymentLink);
       
       console.log("✅ Payment successful:", session);
       

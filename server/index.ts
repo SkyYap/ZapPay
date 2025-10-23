@@ -7,6 +7,7 @@ import { v4 as uuidv4 } from "uuid";
 import { createClient } from "@supabase/supabase-js";
 import { createHash } from "crypto";
 import { walletRiskMiddleware } from "./middleware/walletRiskMiddleware";
+import { recordSuccessfulPayment, recordFailedPayment, extractPaymentAmount, getSystemOwnerId, extractPaymentLinkFromContext, getPaymentLinkData } from "./services/transactionService";
 
 config();
 
@@ -43,13 +44,15 @@ app.use("/*", cors({
   credentials: true,
   allowMethods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
   allowHeaders: [
-    "Content-Type", 
-    "Authorization", 
-    "X-Requested-With", 
-    "access-control-expose-headers", 
-    "x-402-payment", 
-    "x-402-session", 
+    "Content-Type",
+    "Authorization",
+    "X-Requested-With",
+    "access-control-expose-headers",
+    "x-402-payment",
+    "x-402-session",
     "x-payment",
+    "x-payment-link",
+    "X-Payment-Link",
     "x-402-token",
     "x-402-signature",
     "x-402-nonce",
@@ -122,7 +125,7 @@ app.use("/api/pay/*", async (c, next) => {
   }
   c.header('Access-Control-Allow-Credentials', 'true');
   c.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
-  c.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With, access-control-expose-headers, x-402-payment, x-402-session, x-payment, x-402-token, x-402-signature, x-402-nonce, x-402-timestamp, x-402-address, x-402-chain-id, x-402-network, x-402-amount, x-402-currency, x-402-facilitator, x-402-version');
+  c.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With, access-control-expose-headers, x-402-payment, x-402-session, x-payment, x-payment-link, X-Payment-Link, x-402-token, x-402-signature, x-402-nonce, x-402-timestamp, x-402-address, x-402-chain-id, x-402-network, x-402-amount, x-402-currency, x-402-facilitator, x-402-version');
   c.header('Access-Control-Expose-Headers', 'X-PAYMENT-RESPONSE');
   
   if (c.req.method === 'OPTIONS') {
@@ -138,7 +141,7 @@ app.use("/api/pay/*", async (c, next) => {
   }
   c.header('Access-Control-Allow-Credentials', 'true');
   c.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
-  c.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With, access-control-expose-headers, x-402-payment, x-402-session, x-payment, x-402-token, x-402-signature, x-402-nonce, x-402-timestamp, x-402-address, x-402-chain-id, x-402-network, x-402-amount, x-402-currency, x-402-facilitator, x-402-version');
+  c.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With, access-control-expose-headers, x-402-payment, x-402-session, x-payment, x-payment-link, X-Payment-Link, x-402-token, x-402-signature, x-402-nonce, x-402-timestamp, x-402-address, x-402-chain-id, x-402-network, x-402-amount, x-402-currency, x-402-facilitator, x-402-version');
   c.header('Access-Control-Expose-Headers', 'X-PAYMENT-RESPONSE');
 });
 
@@ -174,13 +177,15 @@ app.use("/*", cors({
   credentials: true,
   allowMethods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
   allowHeaders: [
-    "Content-Type", 
-    "Authorization", 
-    "X-Requested-With", 
-    "access-control-expose-headers", 
-    "x-402-payment", 
-    "x-402-session", 
+    "Content-Type",
+    "Authorization",
+    "X-Requested-With",
+    "access-control-expose-headers",
+    "x-402-payment",
+    "x-402-session",
     "x-payment",
+    "x-payment-link",
+    "X-Payment-Link",
     "x-402-token",
     "x-402-signature",
     "x-402-nonce",
@@ -208,7 +213,7 @@ app.use("/*", async (c, next) => {
   }
   c.header('Access-Control-Allow-Credentials', 'true');
   c.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
-  c.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With, access-control-expose-headers, x-402-payment, x-402-session, x-payment, x-402-token, x-402-signature, x-402-nonce, x-402-timestamp, x-402-address, x-402-chain-id, x-402-network, x-402-amount, x-402-currency, x-402-facilitator, x-402-version');
+  c.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With, access-control-expose-headers, x-402-payment, x-402-session, x-payment, x-payment-link, X-Payment-Link, x-402-token, x-402-signature, x-402-nonce, x-402-timestamp, x-402-address, x-402-chain-id, x-402-network, x-402-amount, x-402-currency, x-402-facilitator, x-402-version');
   c.header('Access-Control-Expose-Headers', 'X-PAYMENT-RESPONSE');
 });
 
@@ -223,6 +228,28 @@ app.get("/api/health", (c) => {
       facilitator: facilitatorUrl,
     },
   });
+});
+
+// Free endpoint - get wallet risk analysis from analysis-engine
+app.get("/api/risk/wallet/:address", async (c) => {
+  const address = c.req.param("address");
+  const ANALYSIS_ENGINE_URL = process.env.ANALYSIS_ENGINE_URL || "http://localhost:3002";
+
+  try {
+    console.log(`📡 Forwarding risk analysis request for wallet: ${address}`);
+
+    const response = await fetch(`${ANALYSIS_ENGINE_URL}/api/risk/wallet/${address}`);
+    const data = await response.json();
+
+    return c.json(data);
+  } catch (error: any) {
+    console.error("❌ Failed to fetch risk analysis:", error.message);
+    return c.json({
+      success: false,
+      error: "Failed to fetch wallet risk analysis",
+      message: error.message
+    }, 500);
+  }
 });
 
 // Free endpoint - get payment options
@@ -246,60 +273,258 @@ app.get("/api/payment-options", (c) => {
 });
 
 // Paid endpoint - 24-hour session access ($1.00)
-app.post("/api/pay/session", (c) => {
-  const sessionId = uuidv4();
-  const now = new Date();
-  const expiresAt = new Date(now.getTime() + 24 * 60 * 60 * 1000); // 24 hours
-  
-  const session: Session = {
-    id: sessionId,
-    createdAt: now,
-    expiresAt,
-    type: "24hour",
-  };
+app.post("/api/pay/session", async (c) => {
+  try {
+    const sessionId = uuidv4();
+    const now = new Date();
+    const expiresAt = new Date(now.getTime() + 24 * 60 * 60 * 1000); // 24 hours
 
-  sessions.set(sessionId, session);
-
-  return c.json({
-    success: true,
-    sessionId,
-    message: "24-hour access granted!",
-    session: {
+    const session: Session = {
       id: sessionId,
+      createdAt: now,
+      expiresAt,
       type: "24hour",
-      createdAt: now.toISOString(),
-      expiresAt: expiresAt.toISOString(),
-      validFor: "24 hours",
-    },
-  });
+    };
+
+    sessions.set(sessionId, session);
+
+    // Record successful transaction
+    try {
+      const walletAddress = c.get('walletAddress') || c.req.header('x-402-address');
+      const xPayment = c.req.header('x-payment');
+
+      let amount = 1.0; // Default $1.00
+      let currency = 'USD';
+
+      if (xPayment) {
+        const paymentData = extractPaymentAmount(xPayment);
+        amount = paymentData.amount || 1.0;
+        currency = paymentData.currency || 'USD';
+      }
+
+      // Try to extract payment_link from referrer
+      const paymentLinkHash = extractPaymentLinkFromContext(c);
+      let payment_link_id: string | undefined;
+      let owner_id: string | null = null;
+
+      if (paymentLinkHash) {
+        const linkData = await getPaymentLinkData(paymentLinkHash);
+        if (linkData) {
+          payment_link_id = linkData.id;
+          owner_id = linkData.owner_id;
+        }
+      }
+
+      // Fallback to system owner if no payment link found
+      if (!owner_id) {
+        owner_id = await getSystemOwnerId();
+      }
+
+      if (owner_id) {
+        await recordSuccessfulPayment({
+          owner_id,
+          payment_link_id,
+          amount,
+          currency,
+          crypto_amount: amount, // Set crypto_amount = amount
+          crypto_currency: 'USDC', // Always USDC
+          wallet_address: walletAddress,
+          session_id: sessionId,
+        });
+      } else {
+        console.error('❌ Cannot record transaction: No valid owner_id found');
+      }
+    } catch (recordError: any) {
+      console.error('❌ Failed to record successful transaction:', recordError.message);
+      // Don't fail the payment if recording fails
+    }
+
+    return c.json({
+      success: true,
+      sessionId,
+      message: "24-hour access granted!",
+      session: {
+        id: sessionId,
+        type: "24hour",
+        createdAt: now.toISOString(),
+        expiresAt: expiresAt.toISOString(),
+        validFor: "24 hours",
+      },
+    });
+  } catch (error: any) {
+    console.error('❌ Payment failed:', error);
+
+    // Record failed transaction
+    try {
+      const walletAddress = c.get('walletAddress') || c.req.header('x-402-address');
+
+      // Try to extract payment_link from referrer
+      const paymentLinkHash = extractPaymentLinkFromContext(c);
+      let payment_link_id: string | undefined;
+      let owner_id: string | null = null;
+
+      if (paymentLinkHash) {
+        const linkData = await getPaymentLinkData(paymentLinkHash);
+        if (linkData) {
+          payment_link_id = linkData.id;
+          owner_id = linkData.owner_id;
+        }
+      }
+
+      // Fallback to system owner if no payment link found
+      if (!owner_id) {
+        owner_id = await getSystemOwnerId();
+      }
+
+      if (owner_id) {
+        await recordFailedPayment({
+          owner_id,
+          payment_link_id,
+          amount: 1.0,
+          currency: 'USD',
+          crypto_amount: 1.0, // Set crypto_amount = amount
+          crypto_currency: 'USDC', // Always USDC
+          wallet_address: walletAddress,
+          block_reason: error.message,
+        });
+      }
+    } catch (recordError) {
+      console.error('❌ Failed to record failed transaction:', recordError);
+    }
+
+    return c.json({
+      success: false,
+      error: 'Payment failed',
+      message: error.message,
+    }, 500);
+  }
 });
 
 // Paid endpoint - one-time access/payment ($0.10)
 app.post("/api/pay/onetime", async (c) => {
-  const sessionId = uuidv4();
-  const now = new Date();
-  
-  const session: Session = {
-    id: sessionId,
-    createdAt: now,
-    expiresAt: new Date(now.getTime() + 5 * 60 * 1000), // 5 minutes to use
-    type: "onetime",
-    used: false,
-  };
+  try {
+    const sessionId = uuidv4();
+    const now = new Date();
 
-  sessions.set(sessionId, session);
-
-  return c.json({
-    success: true,
-    sessionId,
-    message: "One-time access granted!",
-    access: {
+    const session: Session = {
       id: sessionId,
+      createdAt: now,
+      expiresAt: new Date(now.getTime() + 5 * 60 * 1000), // 5 minutes to use
       type: "onetime",
-      createdAt: now.toISOString(),
-      validFor: "5 minutes (single use)",
-    },
-  });
+      used: false,
+    };
+
+    sessions.set(sessionId, session);
+
+    // Record successful transaction
+    try {
+      const walletAddress = c.get('walletAddress') || c.req.header('x-402-address');
+      const xPayment = c.req.header('x-payment');
+
+      let amount = 0.10; // Default $0.10
+      let currency = 'USD';
+
+      if (xPayment) {
+        const paymentData = extractPaymentAmount(xPayment);
+        amount = paymentData.amount || 0.10;
+        currency = paymentData.currency || 'USD';
+      }
+
+      // Try to extract payment_link from referrer
+      const paymentLinkHash = extractPaymentLinkFromContext(c);
+      let payment_link_id: string | undefined;
+      let owner_id: string | null = null;
+
+      if (paymentLinkHash) {
+        const linkData = await getPaymentLinkData(paymentLinkHash);
+        if (linkData) {
+          payment_link_id = linkData.id;
+          owner_id = linkData.owner_id;
+        }
+      }
+
+      // Fallback to system owner if no payment link found
+      if (!owner_id) {
+        owner_id = await getSystemOwnerId();
+      }
+
+      if (owner_id) {
+        await recordSuccessfulPayment({
+          owner_id,
+          payment_link_id,
+          amount,
+          currency,
+          crypto_amount: amount, // Set crypto_amount = amount
+          crypto_currency: 'USDC', // Always USDC
+          wallet_address: walletAddress,
+          session_id: sessionId,
+        });
+      } else {
+        console.error('❌ Cannot record transaction: No valid owner_id found');
+      }
+    } catch (recordError: any) {
+      console.error('❌ Failed to record successful transaction:', recordError.message);
+      // Don't fail the payment if recording fails
+    }
+
+    return c.json({
+      success: true,
+      sessionId,
+      message: "One-time access granted!",
+      access: {
+        id: sessionId,
+        type: "onetime",
+        createdAt: now.toISOString(),
+        validFor: "5 minutes (single use)",
+      },
+    });
+  } catch (error: any) {
+    console.error('❌ Payment failed:', error);
+
+    // Record failed transaction
+    try {
+      const walletAddress = c.get('walletAddress') || c.req.header('x-402-address');
+
+      // Try to extract payment_link from referrer
+      const paymentLinkHash = extractPaymentLinkFromContext(c);
+      let payment_link_id: string | undefined;
+      let owner_id: string | null = null;
+
+      if (paymentLinkHash) {
+        const linkData = await getPaymentLinkData(paymentLinkHash);
+        if (linkData) {
+          payment_link_id = linkData.id;
+          owner_id = linkData.owner_id;
+        }
+      }
+
+      // Fallback to system owner if no payment link found
+      if (!owner_id) {
+        owner_id = await getSystemOwnerId();
+      }
+
+      if (owner_id) {
+        await recordFailedPayment({
+          owner_id,
+          payment_link_id,
+          amount: 0.10,
+          currency: 'USD',
+          crypto_amount: 0.10, // Set crypto_amount = amount
+          crypto_currency: 'USDC', // Always USDC
+          wallet_address: walletAddress,
+          block_reason: error.message,
+        });
+      }
+    } catch (recordError) {
+      console.error('❌ Failed to record failed transaction:', recordError);
+    }
+
+    return c.json({
+      success: false,
+      error: 'Payment failed',
+      message: error.message,
+    }, 500);
+  }
 });
 
 // Free endpoint - validate session
