@@ -111,7 +111,7 @@ This creates:
 **Root `.env`:**
 ```env
 # x402 Configuration
-ADDRESS=0x7cAc6ECaA934999ad40a9666d017f186788CDe6E
+ADDRESS=0x_YOUR_WALLET_ADDRESS_HERE
 NETWORK=base-sepolia
 FACILITATOR_URL=https://x402.org/facilitator
 PORT=3001
