@@ -1,7 +1,8 @@
 {
   "permissions": {
     "allow": [
-      "WebFetch(domain:docs.etherscan.io)"
+      "WebFetch(domain:docs.etherscan.io)",
+      "Read(//c/Users/sk_16/Documents/GitHub/ZapPay/**)"
     ],
     "deny": [],
     "ask": []

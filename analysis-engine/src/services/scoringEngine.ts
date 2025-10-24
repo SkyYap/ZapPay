@@ -11,17 +11,38 @@ import {
   generateAMLDescription,
   shouldAutoBlock
 } from './metasleuthProvider';
+import {
+  getMlPrediction,
+  detectAnomaly,
+  isMlServiceAvailable
+} from './mlProvider';
 import fs from 'fs';
 import path from 'path';
 
-// Risk scoring weights (adjusted for AML integration)
-const WEIGHTS = {
-  WALLET_AGE: 0.20,           // Reduced from 0.25
-  TRANSACTION_HISTORY: 0.25,  // Reduced from 0.30
-  ADDRESS_REPUTATION: 0.15,   // Reduced from 0.25
-  BEHAVIOR_PATTERNS: 0.10,    // Reduced from 0.20
-  AML_COMPLIANCE: 0.30        // New factor
+// Check if ML service is enabled
+const ENABLE_ML = process.env.ENABLE_ML !== 'false'; // Default to enabled
+
+// Hybrid scoring weights - with ML integration
+const WEIGHTS_WITH_ML = {
+  ML_PREDICTION: 0.45,        // 45% ML model
+  WALLET_AGE: 0.08,           // 8% traditional factors
+  TRANSACTION_HISTORY: 0.10,  // 10%
+  ADDRESS_REPUTATION: 0.07,   // 7%
+  BEHAVIOR_PATTERNS: 0.05,    // 5%
+  AML_COMPLIANCE: 0.25        // 25% AML
 };
+
+// Fallback weights without ML (original)
+const WEIGHTS_NO_ML = {
+  WALLET_AGE: 0.20,
+  TRANSACTION_HISTORY: 0.25,
+  ADDRESS_REPUTATION: 0.15,
+  BEHAVIOR_PATTERNS: 0.10,
+  AML_COMPLIANCE: 0.30
+};
+
+// Use ML weights if enabled
+const WEIGHTS = ENABLE_ML ? WEIGHTS_WITH_ML : WEIGHTS_NO_ML;
 
 // In-memory cache for risk scores (24 hour TTL)
 const riskCache = new Map<string, { analysis: RiskAnalysis; expiry: number }>();
@@ -97,11 +118,39 @@ export async function analyzeWallet(walletAddress: string): Promise<RiskAnalysis
     const isContract = await isSmartContract(normalizedAddress);
     const patterns = detectUnusualPatterns(walletData);
 
+    // Get ML prediction if enabled
+    let mlPrediction: any = null;
+    let mlAnomaly: any = null;
+
+    if (ENABLE_ML) {
+      const mlAvailable = await isMlServiceAvailable();
+
+      if (mlAvailable) {
+        console.log(`🤖 Getting ML prediction for ${normalizedAddress}`);
+        [mlPrediction, mlAnomaly] = await Promise.all([
+          getMlPrediction(normalizedAddress, walletData, 84532),
+          detectAnomaly(normalizedAddress, walletData, 84532)
+        ]);
+
+        if (mlPrediction) {
+          console.log(`✅ ML Risk Score: ${mlPrediction.risk_score}, Confidence: ${mlPrediction.confidence.toFixed(2)}`);
+        }
+
+        if (mlAnomaly && mlAnomaly.is_anomaly) {
+          console.log(`⚠️  Anomaly detected: ${mlAnomaly.anomaly_score.toFixed(2)}`);
+        }
+      } else {
+        console.log(`⚠️  ML service unavailable, using rule-based scoring`);
+      }
+    }
+
     // Calculate risk factors (including AML)
     const factors = calculateRiskFactors(walletData, isContract, patterns, amlData);
 
-    // Calculate overall risk score (0-100)
-    const riskScore = calculateOverallScore(factors);
+    // Calculate overall risk score (0-100) - hybrid approach
+    const riskScore = mlPrediction
+      ? calculateHybridScore(factors, mlPrediction, mlAnomaly)
+      : calculateOverallScore(factors);
 
     // Determine risk level
     const riskLevel = getRiskLevel(riskScore);
@@ -291,21 +340,67 @@ function calculateAMLScore(metasleuthScore: number): number {
 }
 
 /**
- * Calculate overall weighted risk score
+ * Calculate overall weighted risk score (rule-based only)
  */
 function calculateOverallScore(factors: RiskFactors): number {
   let weightedScore =
-    factors.walletAge.score * factors.walletAge.weight +
-    factors.transactionHistory.score * factors.transactionHistory.weight +
-    factors.addressReputation.score * factors.addressReputation.weight +
-    factors.behaviorPatterns.score * factors.behaviorPatterns.weight;
+    factors.walletAge.score * WEIGHTS_NO_ML.WALLET_AGE +
+    factors.transactionHistory.score * WEIGHTS_NO_ML.TRANSACTION_HISTORY +
+    factors.addressReputation.score * WEIGHTS_NO_ML.ADDRESS_REPUTATION +
+    factors.behaviorPatterns.score * WEIGHTS_NO_ML.BEHAVIOR_PATTERNS;
 
   // Add AML compliance score if available
   if (factors.amlCompliance && factors.amlCompliance.enabled) {
-    weightedScore += factors.amlCompliance.score * factors.amlCompliance.weight;
+    weightedScore += factors.amlCompliance.score * WEIGHTS_NO_ML.AML_COMPLIANCE;
   }
 
   return Math.round(weightedScore);
+}
+
+/**
+ * Calculate hybrid risk score combining ML and rule-based approaches
+ * Weighting: 45% ML + 30% Traditional Rules + 25% AML
+ */
+function calculateHybridScore(
+  factors: RiskFactors,
+  mlPrediction: any,
+  mlAnomaly: any
+): number {
+  // ML component (45%)
+  let mlScore = mlPrediction.risk_score;
+
+  // Boost score if anomaly detected
+  if (mlAnomaly && mlAnomaly.is_anomaly) {
+    const anomalyBoost = mlAnomaly.anomaly_score * 10; // Scale anomaly score
+    mlScore = Math.min(100, mlScore + anomalyBoost);
+    console.log(`🚨 Anomaly boost: +${anomalyBoost.toFixed(1)}`);
+  }
+
+  const mlWeight = WEIGHTS_WITH_ML.ML_PREDICTION;
+  const mlComponent = mlScore * mlWeight;
+
+  // Traditional rule-based components (30%)
+  const rulesComponent =
+    factors.walletAge.score * WEIGHTS_WITH_ML.WALLET_AGE +
+    factors.transactionHistory.score * WEIGHTS_WITH_ML.TRANSACTION_HISTORY +
+    factors.addressReputation.score * WEIGHTS_WITH_ML.ADDRESS_REPUTATION +
+    factors.behaviorPatterns.score * WEIGHTS_WITH_ML.BEHAVIOR_PATTERNS;
+
+  // AML component (25%)
+  const amlComponent = factors.amlCompliance && factors.amlCompliance.enabled
+    ? factors.amlCompliance.score * WEIGHTS_WITH_ML.AML_COMPLIANCE
+    : 0;
+
+  // Combined score
+  const hybridScore = mlComponent + rulesComponent + amlComponent;
+
+  console.log(`📊 Hybrid Score Breakdown:`);
+  console.log(`   ML (45%):         ${mlComponent.toFixed(1)}`);
+  console.log(`   Rules (30%):      ${rulesComponent.toFixed(1)}`);
+  console.log(`   AML (25%):        ${amlComponent.toFixed(1)}`);
+  console.log(`   Total:            ${hybridScore.toFixed(1)}`);
+
+  return Math.round(hybridScore);
 }
 
 /**

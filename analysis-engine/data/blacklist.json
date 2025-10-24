@@ -1,7 +1,7 @@
 {
   "blacklistedWallets": [
     {
-      "address": "0xd60e2F289ff4E54eAC21e30C2bDD78C47aa466E7",
+      "address": "0x0000000",
       "reason": "Example - Testing blacklist"
     }
   ]

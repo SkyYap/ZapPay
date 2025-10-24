@@ -1,0 +1,42 @@
+# Core ML and API Framework
+fastapi>=0.104.1
+uvicorn[standard]>=0.24.0
+pydantic>=2.5.0
+
+# Machine Learning - Updated for Python 3.13 compatibility
+scikit-learn>=1.5.0
+xgboost>=2.0.2
+imbalanced-learn>=0.12.0
+numpy>=1.26.0
+pandas>=2.2.0
+
+# Explainable AI
+shap>=0.45.0
+
+# Model Persistence
+joblib>=1.4.0
+
+# HTTP Client
+httpx>=0.25.2
+aiohttp>=3.9.1
+
+# Data Validation
+pydantic-settings>=2.1.0
+
+# Database (for training data)
+sqlalchemy>=2.0.23
+aiosqlite>=0.19.0
+
+# Monitoring and Logging
+python-json-logger>=2.0.7
+
+# Development
+pytest>=7.4.3
+pytest-asyncio>=0.21.1
+jupyter>=1.0.0
+ipykernel>=6.27.1
+matplotlib>=3.8.2
+seaborn>=0.13.0
+
+# CORS
+python-multipart>=0.0.6
