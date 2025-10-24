@@ -64,14 +64,24 @@ export async function walletRiskMiddleware(c: Context, next: Next) {
 
       // Record blocked transaction to database
       try {
-        const xPayment = c.req.header('x-payment');
+        // Determine amount based on endpoint path
+        const path = c.req.path;
         let amount = 0;
         let currency = 'USD';
 
-        if (xPayment) {
-          const paymentAmount = extractPaymentAmount(xPayment);
-          amount = paymentAmount.amount || 0;
-          currency = paymentAmount.currency || 'USD';
+        // Extract amount from endpoint configuration
+        if (path.includes('/api/pay/session')) {
+          amount = 1.0; // $1.00 for 24-hour session
+        } else if (path.includes('/api/pay/onetime')) {
+          amount = 0.10; // $0.10 for one-time access
+        } else {
+          // Try to extract from x-payment header as fallback
+          const xPayment = c.req.header('x-payment');
+          if (xPayment) {
+            const paymentAmount = extractPaymentAmount(xPayment);
+            amount = paymentAmount.amount || 0;
+            currency = paymentAmount.currency || 'USD';
+          }
         }
 
         // Try to extract payment_link from referrer

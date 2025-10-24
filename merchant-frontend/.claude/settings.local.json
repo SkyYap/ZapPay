@@ -4,7 +4,8 @@
       "WebFetch(domain:docs.metasleuth.io)",
       "Read(//c/Users/sk_16/Documents/GitHub/ZapPay/analysis-engine/**)",
       "Bash(dir /s /b \"C:\\Users\\sk_16\\Documents\\GitHub\\ZapPay\\analysis-engine\\src\\*.ts\")",
-      "Read(//c/Users/sk_16/Documents/GitHub/ZapPay/server/**)"
+      "Read(//c/Users/sk_16/Documents/GitHub/ZapPay/server/**)",
+      "Bash(npm run dev:*)"
     ],
     "deny": [],
     "ask": []
