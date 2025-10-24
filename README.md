@@ -2,7 +2,7 @@
 
 > **The first 0% transaction fee Web3 payment gateway with built-in AI-powered fraud detection**
 
-ZapPay is a comprehensive cryptocurrency payment platform built on the x402 protocol, providing a Stripe-like experience for merchants to accept crypto payments with zero fees. Extended with advanced fraud detection, risk analysis, and merchant dashboard capabilities.
+ZapPay is a comprehensive cryptocurrency payment platform built on the x402 protocol, providing a Stripe-like experience for merchants to accept crypto payments with zero fees. Extended with real-time blocking, advance fraud detection, Machine learning risk analysis, and merchant dashboard capabilities.
 
 ![Home Page](./assets/preview.png)
 
