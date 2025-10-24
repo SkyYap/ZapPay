@@ -5,7 +5,8 @@
       "Read(//c/Users/sk_16/Documents/GitHub/ZapPay/analysis-engine/**)",
       "Bash(dir /s /b \"C:\\Users\\sk_16\\Documents\\GitHub\\ZapPay\\analysis-engine\\src\\*.ts\")",
       "Read(//c/Users/sk_16/Documents/GitHub/ZapPay/server/**)",
-      "Bash(npm run dev:*)"
+      "Bash(npm run dev:*)",
+      "Read(//c/Users/sk_16/Documents/GitHub/ZapPay/**)"
     ],
     "deny": [],
     "ask": []
